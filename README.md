@@ -1,1 +1,0 @@
-# Grade-calc.kakapo
