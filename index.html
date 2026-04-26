@@ -1,0 +1,4267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GWA Calculator</title>
+<style>
+:root {
+  --bg-app:#0f1117; --bg-surface:#1a1d27; --bg-card:#21253a;
+  --bg-card2:#252940; --bg-input:#2a2f47; --bg-input-foc:#313755;
+  --bg-hover:#2e3350; --accent:#6c63ff; --accent2:#a78bfa;
+  --success:#22c55e; --danger:#ef4444; --warning:#f59e0b; --info:#38bdf8;
+  --fg-primary:#f1f5f9; --fg-secondary:#94a3b8; --fg-muted:#64748b;
+  --border:#2e3460; --border-light:#3d4470; --border-focus:#6c63ff;
+  --pass-bg:#14532d; --pass-fg:#86efac;
+  --fail-bg:#7f1d1d; --fail-fg:#fca5a5;
+  --low-bg:#713f12; --low-fg:#fde68a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg-app);color:var(--fg-primary);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;display:flex;flex-direction:column;}
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg-surface);}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px;}
+/* ── Nav ── */
+#nav{background:var(--bg-surface);height:56px;display:flex;align-items:center;flex-shrink:0;border-bottom:1px solid var(--border);}
+#nav-accent-bar{width:4px;height:100%;background:var(--accent);}
+#nav-title{font-size:22px;font-weight:bold;padding:0 16px;color:var(--fg-primary);}
+#nav-sub{color:var(--fg-muted);font-size:9px;padding-left:4px;}
+#nav-right{margin-left:auto;display:flex;align-items:center;padding:0 14px;gap:6px;}
+/* ── Buttons ── */
+.btn{border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:bold;border-radius:4px;padding:7px 14px;transition:opacity .15s;white-space:nowrap;}
+.btn:hover{opacity:.82;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-ghost{background:var(--bg-card2);color:var(--fg-secondary);}
+.btn-muted{background:var(--bg-input);color:var(--fg-secondary);}
+.btn-sm{padding:5px 10px;font-size:10px;}
+/* ── Main body ── */
+#main-body{flex:1;display:grid;grid-template-columns:3fr 2fr;grid-template-rows:auto 1fr;gap:12px;padding:12px;overflow:hidden;min-height:0;}
+/* ── Left config ── */
+#left-config{display:flex;gap:8px;grid-column:1;grid-row:1;}
+.config-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.card-header{color:var(--accent2);font-size:13px;font-weight:bold;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg-card);}
+.card-body{padding:6px 0;}
+.form-row{display:flex;align-items:center;padding:3px 8px;gap:6px;}
+.form-label{color:var(--fg-muted);font-size:10px;text-align:right;min-width:68px;flex-shrink:0;}
+.form-input,.form-select{background:var(--bg-input);color:var(--fg-primary);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:inherit;font-size:13px;outline:none;width:100%;}
+.form-input:focus,.form-select:focus{border-color:var(--border-focus);}
+.form-select{cursor:pointer;appearance:auto;}
+/* ── Right panel ── */
+#right-panel{grid-column:2;grid-row:1;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:auto;}
+/* ── Scale table ── */
+.scale-table{width:100%;border-collapse:collapse;}
+.scale-table th{background:var(--bg-card2);color:var(--fg-muted);font-size:10px;padding:6px 4px;text-align:center;position:sticky;top:0;}
+.scale-table td{padding:4px 6px;text-align:center;font-size:10px;}
+.scale-table tr:nth-child(even) td{background:var(--bg-card2);}
+.scale-table tr:nth-child(odd) td{background:var(--bg-card);}
+.scale-table td.accent{color:var(--accent2);font-weight:bold;}
+.panel-title{color:var(--accent2);font-size:13px;font-weight:bold;padding:8px 14px;border-bottom:1px solid var(--border);}
+/* ── Grade input area ── */
+#grade-input-area{grid-column:1/3;grid-row:2;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+#grade-input-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;flex-shrink:0;}
+#grade-input-title{color:var(--accent2);font-size:13px;font-weight:bold;}
+#grade-input-btns{display:flex;gap:6px;}
+#grade-input-scroll{flex:1;overflow-y:auto;overflow-x:hidden;}
+#grade-input-content{padding:0;}
+#result-bar{background:var(--bg-surface);padding:8px 14px;display:flex;align-items:center;gap:16px;flex-shrink:0;border-top:1px solid var(--border);}
+#result-label{font-size:16px;font-weight:bold;color:var(--fg-muted);}
+#equiv-label{font-size:13px;color:var(--fg-secondary);}
+/* ── Grade input rows ── */
+.gi-header-row {
+    display: grid;
+    background: var(--bg-card2);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--accent2);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    grid-template-columns: 3fr 2fr 1fr;
+    gap: 0;
+}
+
+.gi-data-row {
+    display: grid;
+    padding: 6px 12px;
+    grid-template-columns: 3fr 2fr 1fr;
+    gap: 0;
+}
+
+/* UNIFIED ALIGNMENT - inputs & spans match perfectly */
+.gi-header-row > *,
+.gi-data-row > * {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    box-sizing: border-box;
+    padding: 0 8px;
+    margin: 0;
+}
+
+/* Column 1: Subject/Label - ALWAYS LEFT ALIGNED */
+.gi-header-row > span:first-child,
+.gi-data-row > span:first-child {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+/* Second column = Center aligned (Grade Input) */
+.gi-data-row > span:first-child,
+.gi-data-row > input:first-child 
+.gi-header-row > span:nth-child(2),
+.gi-data-row > input {
+    justify-content: center;
+    text-align: center;
+}
+
+/* First column = Left aligned (Subject) */
+.gi-header-row > span:first-child,
+.gi-data-row > span:first-child {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+/* Third column = Center aligned (Converted/Units) */
+.gi-data-row > span:first-child,
+.gi-data-row > input:first-child 
+.gi-header-row > span:nth-child(2),
+.gi-data-row > input {
+    justify-content: center;
+    text-align: center;
+}
+
+/* Input height matches header height exactly */
+.gi-data-row input.gi-entry {
+    height: 34px !important;
+    padding: 0 10px !important;
+    width: 150px !important;
+    flex: 1;
+}
+.gi-data-row:nth-child(even){background:var(--bg-card2);}
+.gi-data-row:nth-child(odd){background:var(--bg-card);}
+.gi-entry{background:var(--bg-input);color:var(--fg-primary);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:inherit;font-size:13px;outline:none;}
+.gi-entry:focus{border-color:var(--border-focus);}
+.gi-conv{color:var(--fg-muted);font-size:10px;text-align:center;}
+/* ── Status colors ── */
+.status-pass{color:var(--pass-fg);}
+.status-fail{color:var(--fail-fg);}
+.status-low{color:var(--low-fg);}
+.result-pass{background:var(--pass-bg);color:var(--pass-fg);}
+.result-fail{background:var(--fail-bg);color:var(--fail-fg);}
+.result-low{background:var(--low-bg);color:var(--low-fg);}
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;overflow:auto;padding:16px;}
+.modal-window{background:var(--bg-app);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;max-height:92vh;min-width:400px;}
+.modal-header{background:var(--accent);color:#fff;font-size:13px;font-weight:bold;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-radius:8px 8px 0 0;}
+.modal-header-alt{background:var(--bg-card2);color:var(--accent2);font-size:13px;font-weight:bold;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.modal-body{flex:1;overflow-y:auto;padding:12px;background:var(--bg-surface);}
+.modal-footer{padding:8px 12px;background:var(--bg-surface);border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;}
+/* ── Help window ── */
+.help-section{padding:10px 16px;}
+.help-section:nth-child(even){background:var(--bg-card);}
+.help-section:nth-child(odd){background:var(--bg-card2);}
+.help-title{color:var(--accent2);font-size:13px;font-weight:bold;margin-bottom:6px;}
+.help-body{color:var(--fg-secondary);font-size:13px;white-space:pre-wrap;line-height:1.6;}
+/* ── Detail window ── */
+.detail-row{display:flex;}
+.detail-row:nth-child(even){background:var(--bg-card);}
+.detail-row:nth-child(odd){background:var(--bg-card2);}
+.detail-key{color:var(--fg-muted);font-size:10px;min-width:110px;padding:5px 8px;text-align:right;}
+.detail-val{color:var(--fg-primary);font-size:13px;padding:5px 8px;flex:1;}
+/* ── Saved window ── */
+.saved-row{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;align-items:center;gap:8px;}
+.saved-row-info{flex:1;min-width:0;}
+.saved-row-name{font-weight:bold;font-size:13px;color:var(--fg-primary);}
+.saved-row-meta{color:var(--fg-muted);font-size:10px;margin-top:2px;}
+.saved-row-btns{display:flex;gap:4px;flex-shrink:0;}
+/* ── Split view ── */
+.split-modal{min-width:min(1280px,96vw);max-width:96vw;max-height:94vh;width:1280px;}
+.split-modal .modal-body{display:flex;flex-direction:column;padding:8px;gap:8px;}
+.split-info-bar{background:var(--bg-surface);padding:8px 12px;border-radius:4px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.split-panels{display:flex;gap:8px;flex:1;min-height:0;height:580px;}
+.split-panel{flex:1;display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.split-panel-header-left{background:var(--accent);color:#fff;font-size:13px;font-weight:bold;padding:8px 12px;flex-shrink:0;}
+.split-panel-header-right{background:var(--bg-card2);color:var(--accent2);font-size:13px;font-weight:bold;padding:8px 12px;flex-shrink:0;}
+.split-panel-body{flex:1;overflow-y:auto;padding:6px;}
+.split-panel-footer{padding:8px 12px;background:var(--bg-card);border-top:1px solid var(--border);flex-shrink:0;}
+.split-result-label{font-size:13px;font-weight:bold;color:var(--fg-muted);padding:4px 8px;}
+/* ── SubjectDialog ── */
+.subdialog{min-width:520px;max-width:600px;}
+.sub-sec{background:var(--bg-card2);padding:6px 10px;margin:4px 0;border-radius:4px;}
+.sub-sec-title{color:var(--accent2);font-size:12px;font-weight:bold;margin-bottom:4px;}
+.sub-row{display:flex;align-items:center;gap:8px;padding:3px 0;}
+.sub-label{color:var(--fg-muted);font-size:10px;min-width:130px;text-align:right;}
+.sub-entry{background:var(--bg-input);color:var(--fg-primary);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:inherit;font-size:13px;outline:none;}
+.sub-entry:focus{border-color:var(--border-focus);}
+.sub-result{font-size:16px;font-weight:bold;padding:8px 12px;text-align:center;}
+.cb-row{display:flex;align-items:center;gap:8px;padding:3px 0;color:var(--fg-primary);font-size:13px;cursor:pointer;}
+.cb-row input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;}
+/* ── Info banner ── */
+.info-banner{background:var(--bg-card2);color:var(--info);font-size:10px;padding:6px 12px;border-radius:4px;margin:4px 0;line-height:1.5;}
+.desc-banner{background:var(--bg-card);color:var(--info);font-size:10px;padding:6px 12px;line-height:1.5;}
+/* ── Pisay subject list ── */
+.pisay-row{display:flex;align-items:center;padding:3px 12px;gap:8px;}
+.pisay-row:nth-child(even){background:var(--bg-card2);}
+.pisay-row:nth-child(odd){background:var(--bg-card);}
+.pisay-btn{background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--fg-secondary);text-align:left;padding:6px 4px;min-width:200px;}
+.pisay-btn:hover{color:var(--accent2);}
+.pisay-btn.entered{color:var(--accent2);}
+/* ── Split panel entry rows ── */
+.sp-entry-row{display:grid;align-items:center;padding:5px 10px;gap:8px;}
+.sp-entry-row:nth-child(even){background:var(--bg-card2);}
+.sp-entry-row:nth-child(odd){background:var(--bg-card);}
+/* ── Search bar ── */
+.search-bar{display:flex;gap:8px;align-items:center;padding:8px;}
+.search-bar input{background:var(--bg-input);color:var(--fg-primary);border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-family:inherit;font-size:13px;outline:none;flex:1;}
+.search-bar input:focus{border-color:var(--border-focus);}
+/* ── Misc ── */
+.sect-divider{height:1px;background:var(--border);margin:8px 0;}
+.panel-subhdr{display:grid;background:var(--bg-card2);padding:5px 10px;font-size:10px;color:var(--fg-muted);font-weight:bold;}
+.panel-entry-row{display:grid;align-items:center;padding:5px 10px;gap:8px;}
+.panel-entry-row:nth-child(even){background:var(--bg-card2);}
+.panel-entry-row:nth-child(odd){background:var(--bg-card);}
+/* Force horizontal layout on mobile/tablets */
+/* Force horizontal layout on mobile/tablets */
+@media (max-width: 1024px) {
+  html, body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+  }
+  
+  #nav {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 56px;
+    padding: 8px 0;
+    position: relative;
+    z-index: 100;
+  }
+  
+  #nav-right {
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-end;
+    padding: 4px 14px;
+    gap: 4px;
+  }
+  
+  #nav-sub {
+    display: none;
+  }
+  
+  #main-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    overflow-y: visible;
+    overflow-x: hidden;
+    height: auto;
+    min-height: auto;
+    padding: 12px;
+  }
+  
+  #left-config {
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: column;
+  }
+  
+  /* Fix Settings card body to show all content */
+  #settings-body {
+    max-height: none;
+    overflow-y: visible;
+  }
+  
+  .config-card {
+    overflow: visible;
+    min-height: auto;
+  }
+  
+  #right-panel {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 300px;
+  }
+  
+  #grade-input-area {
+    grid-column: 1;
+    grid-row: 3;
+    min-height: 400px;
+  }
+  
+  body, #main-body, #grade-input-scroll, .modal-body {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix modal windows for mobile */
+  .modal-overlay {
+    padding: 8px;
+  }
+  
+  .modal-window {
+    min-width: auto;
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+  
+  /* Fix saved window specifically */
+  .saved-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .saved-row-btns {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+  
+  .saved-row-btns .btn {
+    flex: 1;
+  }
+  
+  /* Fix search bar on mobile */
+  .search-bar {
+    flex-direction: column;
+  }
+  
+  .search-bar input {
+    width: 100%;
+  }
+  
+  .search-bar button {
+    width: 100%;
+  }
+  
+  /* Fix split view modal on mobile */
+  .split-modal {
+    min-width: auto;
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+  }
+  
+  .split-panels {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .split-panel {
+    min-height: 300px;
+  }
+  
+  /* Fix help window */
+  .help-section {
+    padding: 8px 12px;
+  }
+  
+  /* Fix subject dialog */
+  .subdialog {
+    min-width: auto;
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+  }
+}
+</style>
+</head><body>
+<!-- Nav -->
+<div id="nav">
+  <div id="nav-accent-bar"></div>
+  <span id="nav-title">GWA Calculator</span>
+  <span id="nav-sub">PISAY  /  DepEd  /  Others  /  International</span>
+  <div id="nav-right">
+    <button class="btn btn-muted" onclick="showLanguageSelector()">Language</button>
+    <button class="btn btn-primary" onclick="handleSave()">Save</button>
+    <button class="btn btn-ghost" onclick="showSavedWindow()">Files</button>
+    <button class="btn btn-ghost" onclick="showSearchWindow()">Search</button>
+    <button class="btn btn-ghost" onclick="showHelpWindow()">Help</button>
+  </div>
+</div>
+
+<!-- Main body -->
+<div id="main-body">
+  <!-- Left config (col 1, row 1) -->
+  <div id="left-config">
+    <!-- Student Info Card -->
+    <div class="config-card" id="student-info-card">
+      <div class="card-header">Student Info</div>
+      <div class="card-body">
+        <div class="form-row"><span class="form-label">Full Name</span><input class="form-input" id="stu-name" type="text"></div>
+        <div class="form-row"><span class="form-label">Student ID</span><input class="form-input" id="stu-id" type="text"></div>
+        <div class="form-row"><span class="form-label">Grade Lvl</span><input class="form-input" id="stu-grade" type="text"></div>
+        <div class="form-row"><span class="form-label">Section</span><input class="form-input" id="stu-section" type="text"></div>
+        <div class="form-row"><span class="form-label">Quarter</span>
+          <select class="form-select" id="stu-quarter">
+            <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Settings Card -->
+    <div class="config-card" id="settings-card">
+      <div class="card-header">Settings</div>
+      <div class="card-body" id="settings-body">
+        <div class="form-row"><span class="form-label">System</span>
+          <select class="form-select" id="sys-select" onchange="onSystemChange()"></select>
+        </div>
+        <div class="form-row"><span class="form-label">Grading</span>
+          <select class="form-select" id="grading-select" onchange="onGradingChange()">
+            <option value="Percentile">Percentile</option>
+            <option value="GWA">GWA</option>
+          </select>
+        </div>
+        <div class="form-row"><span class="form-label">Type</span>
+          <select class="form-select" id="type-select" onchange="onTypeChange()"></select>
+        </div>
+        <!-- School level row (country systems) -->
+        <div class="form-row" id="school-level-row" style="display:none;">
+          <span class="form-label" style="color:var(--accent2);">School Level</span>
+          <select class="form-select" id="school-level-select" onchange="onSchoolLevelChange()"></select>
+        </div>
+        <!-- Pisay grade level -->
+        <div class="form-row" id="grade-level-row" style="display:none;">
+          <span class="form-label">Grade Lvl</span>
+          <select class="form-select" id="grade-level-select" onchange="onGradeLevelChange()">
+            <option>7</option><option>8</option><option>9</option><option>10</option><option value="11" selected>11</option><option>12</option>
+          </select>
+        </div>
+        <!-- Pisay elective -->
+        <div class="form-row" id="elect-row" style="display:none;">
+          <span class="form-label">Elective</span>
+          <select class="form-select" id="elect-select"></select>
+        </div>
+        <!-- Pisay core -->
+        <div class="form-row" id="core-row" style="display:none;">
+          <span class="form-label">Core Sci</span>
+          <select class="form-select" id="core-select">
+            <option>Biology</option><option>Chemistry</option><option>Physics</option>
+          </select>
+        </div>
+        <!-- Number -->
+        <div class="form-row" id="num-row">
+          <span class="form-label" id="num-label">Subjects</span>
+          <input class="form-input" id="num-entry" type="number" min="1" value="1" style="width:70px;">
+        </div>
+        <!-- Country info label -->
+        <div class="info-banner" id="country-info-lbl" style="display:none;"></div>
+        <!-- Buttons -->
+        <div class="form-row" style="gap:8px;padding:8px;">
+          <button class="btn btn-primary" style="flex:1;padding:8px;" onclick="handleGenerate()">Generate</button>
+          <button class="btn btn-danger" style="padding:8px 14px;" onclick="handleClearAll()">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel (col 2, row 1) -->
+  <div id="right-panel"></div>
+
+  <!-- Grade input area (col 1-2, row 2) -->
+  <div id="grade-input-area">
+    <div id="grade-input-header">
+      <span id="grade-input-title">Grade Input</span>
+      <div id="grade-input-btns">
+        <button class="btn btn-success btn-sm" id="add-subj-btn" style="display:none;" onclick="addPisaySubject()">+ Add Subject</button>
+        <button class="btn btn-danger btn-sm" id="rm-subj-btn" style="display:none;" onclick="rmPisaySubject()">- Remove Last</button>
+      </div>
+    </div>
+    <div id="grade-input-scroll">
+      <div id="grade-input-content"></div>
+    </div>
+    <div id="result-bar">
+      <button class="btn btn-primary" style="padding:10px 20px;" onclick="handleCalculate()">Calculate</button>
+      <span id="result-label">Enter grades then click Calculate</span>
+      <span id="equiv-label"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────
+const PISAY_DATA = {
+  electives: {
+    "10": ["Biology","Chemistry","Physics"],
+    "11": ["Technology","Agricultural Engineering","Engineering","Computer Science"],
+    "12": ["Technology","Agricultural Engineering","Engineering","Computer Science"]
+  },
+  "7": [
+    {name:"AdTech",units:1},{name:"Computer Science",units:1},
+    {name:"English",units:1.3},{name:"Filipino",units:1},
+    {name:"Integrated Science",units:1.7},{name:"Mathematics",units:1.7},
+    {name:"PEHM",units:1},{name:"Social Science",units:1}
+  ],
+  "8": [
+    {name:"Math 2",units:1},{name:"Math 3",units:1},
+    {name:"Biology",units:1},{name:"Chemistry",units:1},
+    {name:"Physics",units:1},{name:"English",units:1.3},
+    {name:"Filipino",units:1},{name:"Social Science",units:1},
+    {name:"Computer Science",units:1},{name:"Earth Science",units:1},
+    {name:"AdTech",units:1},{name:"PEHM",units:1}
+  ],
+  "9": [
+    {name:"Biology",units:1},{name:"Chemistry",units:1},
+    {name:"Computer Science",units:1},{name:"English",units:1},
+    {name:"Filipino",units:1},{name:"Mathematics",units:1},
+    {name:"PEHM",units:1},{name:"Physics",units:1},
+    {name:"Social Science",units:1},{name:"Statistics",units:1}
+  ],
+  "10": [
+    {name:"English",units:1},{name:"PEHM",units:1},
+    {name:"Biology",units:1},{name:"Computer Science",units:1},
+    {name:"Physics",units:1},{name:"Chemistry",units:1},
+    {name:"STEM Research",units:1},{name:"Social Science",units:1},
+    {name:"Math",units:1.3},{name:"Filipino",units:1},
+    {name:"Electives",units:1}
+  ],
+  "11": [
+    {name:"Research",units:2},{name:"Core Science",units:1.7},
+    {name:"Electives",units:1.7},{name:"Mathematics",units:1},
+    {name:"English",units:1},{name:"Filipino",units:1},
+    {name:"Social Science",units:1}
+  ],
+  "12": [
+    {name:"Mathematics",units:1},{name:"Social Science",units:1},
+    {name:"Research",units:2},{name:"Biology",units:1.7},
+    {name:"Electives",units:1.7},{name:"Filipino",units:1},
+    {name:"English",units:1}
+  ]
+};
+
+const LETTER_MAP = {
+  US_PS: {A:95.0,B:84.5,C:74.5,D:64.5,F:30.0},
+  US_GPA: {A:4.0,"A-":3.7,"A−":3.7,"B+":3.3,B:3.0,"B-":2.7,"B−":2.7,"C+":2.3,C:2.0,"C-":1.7,"C−":1.7,D:1.0,F:0.0},
+  UK_GCSE: {"9":9.0,"8":8.0,"7":7.0,"6":6.0,"5":5.0,"4":4.0,"3":3.0,"2":2.0,"1":1.0,"U":0.0},
+  UK_DEG: {"1ST":85.0,"FIRST":85.0,"1":85.0,"2:1":64.5,"21":64.5,"UPPER":64.5,"2:2":54.5,"22":54.5,"LOWER":54.5,"3RD":44.5,"THIRD":44.5,"3":44.5,"FAIL":20.0,"F":20.0},
+  CA_PS: {A:90.0,B:74.5,C:64.5,D:54.5,F:25.0},
+  CA_GPA: {"A+":4.0,A:4.0,"A-":3.7,"A−":3.7,"B+":3.3,B:3.0,"B-":2.7,"B−":2.7,"C+":2.3,C:2.0,D:1.0,F:0.0},
+  JP_PS: {S:95.0,A:84.5,B:74.5,C:64.5,F:30.0},
+  JP_COL: {A:90.0,B:74.5,C:64.5,F:30.0},
+  KR_PS: {A:95.0,B:84.5,C:74.5,D:64.5,E:30.0},
+  KR_GPA: {"A+":4.5,A:4.0,"B+":3.5,B:3.0,"C+":2.5,C:2.0,"D+":1.5,D:1.0,F:0.0},
+  AU_PS: {A:95.0,B:84.5,C:74.5,D:64.5,F:30.0},
+  AU_HD: {HD:92.5,D:79.5,C:69.5,P:57.0,F:25.0},
+  DE_1_6: {"1":1.0,"2":2.0,"3":3.0,"4":4.0,"5":5.0,"6":6.0},
+  DE_ABITUR: {},  
+  DE_UNI: {}, 
+  TW_PS: {}, 
+  TW_GPA: {"A":4.0,"A-":3.7,"A−":3.7,"B+":3.3,"B":3.0,"B-":2.7,"B−":2.7,"C+":2.3,"C":2.0,"C-":1.7,"C−":1.7,"D":1.0,"F":0.0},
+  CN_PS: {}, 
+  CN_GPA: {"A":4.0,"A-":3.7,"A−":3.7,"B+":3.3,"B":3.0,"B-":2.7,"B−":2.7,"C+":2.3,"C":2.0,"D":1.5,"F":0.0}
+};
+
+const LETTER_HINTS = {
+  US_PS:"Letters: A B C D F  or  0–100",
+  US_GPA:"Letters: A A- B+ B B- C+ C C- D F  or  0.0–4.0",
+  UK_GCSE:"Bands: 9 8 7 6 5 4 3 2 1 U  (or numeric 0–9)",
+  UK_DEG:"Classes: 1st  2:1  2:2  3rd  Fail  or  0–100",
+  CA_PS:"Letters: A B C D F  or  0–100",
+  CA_GPA:"Letters: A+ A A- B+ B B- C+ C D F  or  0.0–4.0",
+  JP_PS:"Letters: S A B C F  or  0–100",
+  JP_COL:"Letters: A B C F  or  0–100",
+  KR_PS:"Letters: A B C D E  or  0–100",
+  KR_GPA:"Letters: A+ A B+ B C+ C D+ D F  or  0.0–4.5",
+  AU_PS:"Letters: A B C D E  or  0–100",
+  AU_HD:"Letters: HD D C P F  or  0–100",
+  DE_1_6:"Grades: 1 2 3 4 5 6  (1=best, 6=worst)",
+  DE_ABITUR:"Points: 0–15  (15=best, 0=worst)",
+  DE_UNI:"Grade: 1.0–5.0  (lower is better, 1.0=best)",
+  TW_PS:"Percentage: 0–100",
+  TW_GPA:"Letters: A A- B+ B B- C+ C C- D F  or  0.0–4.0",
+  CN_PS:"Percentage: 0–100",
+  CN_GPA:"Letters: A A- B+ B B- C+ C D F  or  0.0–4.0"
+};
+
+const COUNTRY_SYSTEMS = {
+  "🇺🇸 United States": {
+    levels: ["Primary & Secondary", "College (GPA)"],
+    "Primary & Secondary": {
+      grading_mode: "Percentage", scale: "US_PS",
+      description: "Letter grades (A=90-100, B=80-89, C=70-79, D=60-69, F=<60). Enter letter or 0–100.",
+      passing: 60,
+      grades: [["A",90,100,"Top 10%"],["B",80,89,"Next tier"],["C",70,79,"Average"],["D",60,69,"Low"],["F",0,59,"Fail"]]
+    },
+    "College (GPA)": {
+      grading_mode: "GPA_4", scale: "US_GPA",
+      description: "GPA 4.0 scale. Enter letter or 0.0–4.0.",
+      passing: 2.0,
+      grades: [["A",4.0,4.0],["A−",3.7,3.7],["B+",3.3,3.3],["B",3.0,3.0],["B−",2.7,2.7],["C+",2.3,2.3],["C",2.0,2.0],["C−",1.7,1.7],["D",1.0,1.0],["F",0.0,0.0]]
+    }
+  },
+  "🇬🇧 United Kingdom": {
+    levels: ["Primary & Secondary (GCSE)", "College (Degree)"],
+    "Primary & Secondary (GCSE)": {
+      grading_mode: "GCSE", scale: "UK_GCSE",
+      description: "GCSE 9-1 scale. Enter number 9–1 or U.",
+      passing: 4,
+      grades: [["9",9,9,"A*"],["8",8,8,"A* / A"],["7",7,7,"A"],["6",6,6,"B"],["5",5,5,"C"],["4",4,4,"C"],["3",3,3,"D"],["U",0,0,"Ungraded"]]
+    },
+    "College (Degree)": {
+      grading_mode: "Percentage", scale: "UK_DEG",
+      description: "Degree classification. Enter 1st, 2:1, 2:2, 3rd or Fail.",
+      passing: 40,
+      grades: [["1st",70,100,"First Class"],["2:1",60,69,"Upper Second"],["2:2",50,59,"Lower Second"],["3rd",40,49,"Third"],["Fail",0,39,"Fail"]]
+    }
+  },
+  "🇨🇦 Canada": {
+    levels: ["Primary & Secondary", "College (GPA)"],
+    "Primary & Secondary": {
+      grading_mode: "Percentage", scale: "CA_PS",
+      description: "Letter grades. Enter A/B/C/D/F or 0–100.",
+      passing: 50,
+      grades: [["A",80,100,"Excellent"],["B",70,79,"Good"],["C",60,69,"Average"],["D",50,59,"Pass"],["F",0,49,"Fail"]]
+    },
+    "College (GPA)": {
+      grading_mode: "GPA_4", scale: "CA_GPA",
+      description: "GPA 4.0 scale. Enter letter or 0.0–4.0.",
+      passing: 2.0,
+      grades: [["A / A+",4.0,4.0],["A−",3.7,3.7],["B+",3.3,3.3],["B",3.0,3.0],["B−",2.7,2.7],["C+",2.3,2.3],["C",2.0,2.0],["D",1.0,1.0],["F",0.0,0.0]]
+    }
+  },
+  "🇯🇵 Japan": {
+    levels: ["Primary & Secondary", "College"],
+    "Primary & Secondary": {
+      grading_mode: "Percentage", scale: "JP_PS",
+      description: "S/A/B/C/F ranking. Enter letter or 0–100.",
+      passing: 60,
+      grades: [["S",90,100,"Excellent"],["A",80,89,"Very Good"],["B",70,79,"Good"],["C",60,69,"Pass"],["F",0,59,"Fail"]]
+    },
+    "College": {
+      grading_mode: "Percentage", scale: "JP_COL",
+      description: "A/B/C/F. Enter letter or 0–100.",
+      passing: 60,
+      grades: [["A",80,100,"Excellent"],["B",70,79,"Good"],["C",60,69,"Pass"],["F",0,59,"Fail"]]
+    }
+  },
+  "🇰🇷 South Korea": {
+    levels: ["Primary & Secondary", "College (GPA)"],
+    "Primary & Secondary": {
+      grading_mode: "Percentage", scale: "KR_PS",
+      description: "Relative ranking (A=top~10%, B, C, D, E). Enter letter A/B/C/D/E or 0–100.",
+      passing: 60,
+      grades: [["A",90,100,"Top ~10%"],["B",80,89,"Next tier"],["C",70,79,"Average"],["D",60,69,"Low"],["E",0,59,"Very low"]]
+    },
+    "College (GPA)": {
+      grading_mode: "GPA_4_5", scale: "KR_GPA",
+      description: "GPA 4.5 scale. Enter letter or 0.0–4.5.",
+      passing: 2.0,
+      grades: [["A+",4.5,4.5],["A",4.0,4.0],["B+",3.5,3.5],["B",3.0,3.0],["C+",2.5,2.5],["C",2.0,2.0],["D+",1.5,1.5],["D",1.0,1.0],["F",0.0,0.0]]
+    }
+  },
+  "🇦🇺 Australia": {
+    levels: ["Primary & Secondary", "College (HD Scale)"],
+    "Primary & Secondary": {
+      grading_mode: "Percentage", scale: "AU_PS",
+      description: "A/B/C/D/E. Enter letter or 0–100.",
+      passing: 50,
+      grades: [["A",85,100,"Excellent"],["B",75,84,"Good"],["C",65,74,"Satisfactory"],["D",50,64,"Limited"],["E",0,49,"Fail"]]
+    },
+    "College (HD Scale)": {
+      grading_mode: "Percentage", scale: "AU_HD",
+      description: "HD scale. Enter HD / D / C / P / F or 0–100.",
+      passing: 50,
+      grades: [["HD",85,100,"7.0"],["D",75,84,"6.0"],["C",65,74,"5.0"],["P",50,64,"4.0"],["F",0,49,"0"]]
+    }
+  },
+  "🇩🇪 Germany": {
+    levels:["Primary & Secondary (1-6)","Upper Secondary (Abitur 0-15)","College (1.0-5.0)"],
+    "Primary & Secondary (1-6)":{grading_mode:"DE_1_6",scale:"DE_1_6",description:"German 1-6 scale. 1=Sehr gut (best), 6=Ungenügend (fail). Enter 1, 2, 3, 4, 5, or 6.",passing:4,grades:[["1 (Sehr gut)",1,1,"A / Very Good"],["2 (Gut)",2,2,"B / Good"],["3 (Befriedigend)",3,3,"C / Satisfactory"],["4 (Ausreichend)",4,4,"D / Pass"],["5 (Mangelhaft)",5,5,"F / Poor"],["6 (Ungenügend)",6,6,"F / Fail"]]},
+    "Upper Secondary (Abitur 0-15)":{grading_mode:"DE_ABITUR",scale:"DE_ABITUR",description:"Abitur point system (0-15). 15=best, 0=worst. Enter points 0-15.",passing:5,grades:[["15-13 (Sehr gut)",13,15,"1 / Very Good"],["12-10 (Gut)",10,12,"2 / Good"],["9-7 (Befriedigend)",7,9,"3 / Satisfactory"],["6-5 (Ausreichend)",5,6,"4 / Pass"],["4-1 (Mangelhaft)",1,4,"5 / Fail"],["0 (Ungenügend)",0,0,"6 / Fail"]]},
+    "College (1.0-5.0)":{grading_mode:"DE_UNI",scale:"DE_UNI",description:"German university scale (1.0-5.0). Lower is better. 1.0=best, 5.0=fail. Enter 1.0-5.0.",passing:4.0,grades:[["1.0-1.5 (Sehr gut)",1.0,1.5,"Very Good"],["1.6-2.5 (Gut)",1.6,2.5,"Good"],["2.6-3.5 (Befriedigend)",2.6,3.5,"Satisfactory"],["3.6-4.0 (Ausreichend)",3.6,4.0,"Pass"],["5.0 (Nicht bestanden)",5.0,5.0,"Fail"]]}
+  },
+  "🇹🇼 Taiwan  ": {
+    levels:["Elementary & High School","College (GPA)"],
+    "Elementary & High School":{grading_mode:"Percentage",scale:"TW_PS",description:"Taiwan percentage system (0-100). 90+=Excellent, 60+=Pass. Enter 0-100.",passing:60,grades:[["90-100 (Excellent)",90,100,"A"],["80-89 (Very Good)",80,89,"B"],["70-79 (Good)",70,79,"C"],["60-69 (Pass)",60,69,"D"],["Below 60 (Fail)",0,59,"F"]]},
+    "College (GPA)":{grading_mode:"GPA_4",scale:"TW_GPA",description:"Taiwan GPA 4.0 scale. Enter letter (A / A- / B+ / B / B- / C+ / C / C- / D / F) or 0.0-4.0.",passing:1.0,grades:[["A",4.0,4.0],["A−",3.7,3.7],["B+",3.3,3.3],["B",3.0,3.0],["B−",2.7,2.7],["C+",2.3,2.3],["C",2.0,2.0],["C−",1.7,1.7],["D",1.0,1.0],["F",0.0,0.0]]}
+  },
+  "🇨🇳 China": {
+    levels:["Elementary & High School","College (GPA)"],
+    "Elementary & High School":{grading_mode:"Percentage",scale:"CN_PS",description:"China percentage system (0-100). 90+=Excellent, 60+=Pass. Enter 0-100.",passing:60,grades:[["90-100 (Excellent)",90,100,"A"],["80-89 (Good)",80,89,"B"],["70-79 (Average)",70,79,"C"],["60-69 (Pass)",60,69,"D"],["Below 60 (Fail)",0,59,"F"]]},
+    "College (GPA)":{grading_mode:"GPA_4",scale:"CN_GPA",description:"China GPA 4.0 scale. Enter letter (A / A- / B+ / B / B- / C+ / C / D / F) or 0.0-4.0.",passing:1.0,grades:[["A",4.0,4.0],["A−",3.7,3.7],["B+",3.3,3.3],["B",3.0,3.0],["B−",2.7,2.7],["C+",2.3,2.3],["C",2.0,2.0],["D",1.5,1.5],["Pass (60-63)",1.0,1.0],["F",0.0,0.0]]}
+  }
+};
+
+const TRANSLATIONS = {
+  en: {
+    app_title: "GWA Calculator",
+    nav_sub: "PISAY  /  DepEd  /  Others  /  International",
+    student_info: "Student Info",
+    full_name: "Full Name",
+    student_id: "Student ID",
+    grade_level: "Grade Lvl",
+    section: "Section",
+    quarter: "Quarter",
+    settings: "Settings",
+    system: "System",
+    grading: "Grading",
+    type: "Type",
+    school_level: "School Level",
+    elective: "Elective",
+    core_sci: "Core Sci",
+    subjects: "Subjects",
+    periods: "Periods",
+    generate: "Generate",
+    clear: "Clear",
+    save: "Save",
+    files: "Files",
+    search: "Search",
+    help: "Help",
+    calculate: "Calculate",
+    enter_grades: "Enter grades then click Calculate",
+    grade_input: "Grade Input",
+    add_subject: "+ Add Subject",
+    remove_last: "- Remove Last",
+    language: "Language",
+    percentile: "Percentile",
+    gwa: "GWA",
+    subject: "Subject",
+    overall: "Overall",
+    desired_grade: "Desired Grade",
+    individual_subject: "Individual Subject & Quarter GWA",
+    // Options
+    q1: "Q1", q2: "Q2", q3: "Q3", q4: "Q4",
+    //
+    subject_name: "Subject Name",
+    converted: "Converted",
+    period_quarter: "Period / Quarter",
+    // Buttons
+    view: "View",
+    delete: "Delete",
+    close: "Close",
+    ok: "OK",
+    yes: "Yes",
+    no: "No",
+    cancel: "Cancel",
+    load_split: "Load Split",
+    show_all: "Show All",
+    // Windows
+    help_guide: "Help & Guide",
+    saved_files: "Saved Grade Files",
+    search_files: "Search Grade Files",
+    split_view: "Split View",
+    // Labels
+    file: "File",
+    student: "Student",
+    id: "ID",
+    result: "Result",
+    entries: "Entries",
+    entry: "Entry",
+    // Messages
+    no_files: "No saved files found.",
+    no_results: "No results found.",
+    generate_first: "Generate inputs first before saving.",
+    enter_name: "Enter a name for this grade file:",
+    already_exists: "already exists. Overwrite?",
+    saved_as: "Saved as",
+    delete_confirm: "Delete",
+    // Search
+    search_placeholder: "Search by file name or student ID...",
+    query_placeholder: "Query...",
+    search_by: "Search by file name or student ID",
+    // Grade scale
+    grade_scale: "Grade Scale",
+    gwa_equivalency: "GWA Equivalency Table",
+    range: "Range",
+    // Split view
+    new_calculation: "New Calculation (Editable)",
+    saved_data: "Saved Data (Read Only)",
+    calculate_new: "Calculate New",
+    save_this: "Save This",
+    // Status
+    passed: "PASSED ✅",
+    failed: "FAILED ❌",
+    low_grade: "LOW GRADE ⚠",
+    // Errors
+    invalid_input: "Invalid input — check your values",
+    select_level: "Select a School Level first.",
+    no_grades: "No grades entered.",
+    // Countries
+    pisay: "Pisay",
+    deped: "DepEd",
+    standard: "Standard",
+    others: "Others"
+  },
+  
+  ko: {
+    app_title: "GWA 계산기",
+    nav_sub: "PISAY  /  DepEd  /  기타  /  국제",
+    student_info: "학생 정보",
+    full_name: "이름",
+    student_id: "학번",
+    grade_level: "학년",
+    section: "반",
+    quarter: "분기",
+    settings: "설정",
+    system: "시스템",
+    grading: "채점",
+    type: "유형",
+    school_level: "학교 수준",
+    elective: "선택과목",
+    core_sci: "핵심 과학",
+    subjects: "과목",
+    periods: "기간",
+    generate: "생성",
+    clear: "지우기",
+    save: "저장",
+    files: "파일",
+    search: "검색",
+    help: "도움말",
+    calculate: "계산",
+    enter_grades: "성적을 입력한 후 계산을 클릭하세요",
+    grade_input: "성적 입력",
+    add_subject: "+ 과목 추가",
+    remove_last: "- 마지막 제거",
+    language: "언어",
+    percentile: "백분위수",
+    gwa: "GWA",
+    subject: "과목",
+    overall: "전체",
+    desired_grade: "목표 성적",
+    individual_subject: "개별 과목 및 분기 GWA",
+    // Options
+    q1: "1분기", q2: "2분기", q3: "3분기", q4: "4분기",
+    // Buttons
+    view: "보기",
+    delete: "삭제",
+    close: "닫기",
+    ok: "확인",
+    yes: "예",
+    no: "아니오",
+    cancel: "취소",
+    load_split: "분할 로드",
+    show_all: "모두 보기",
+    // Windows
+    help_guide: "도움말 및 가이드",
+    saved_files: "저장된 성적 파일",
+    search_files: "성적 파일 검색",
+    split_view: "분할 보기",
+    // Labels
+    file: "파일",
+    student: "학생",
+    id: "학번",
+    result: "결과",
+    entries: "항목",
+    entry: "항목",
+    // Messages
+    no_files: "저장된 파일이 없습니다.",
+    no_results: "결과를 찾을 수 없습니다.",
+    generate_first: "저장하기 전에 먼저 입력을 생성하세요.",
+    enter_name: "이 성적 파일의 이름을 입력하세요:",
+    already_exists: "이(가) 이미 존재합니다. 덮어쓰시겠습니까?",
+    saved_as: "다음으로 저장됨",
+    delete_confirm: "삭제",
+    // Search
+    search_placeholder: "파일 이름 또는 학번으로 검색...",
+    query_placeholder: "검색어...",
+    search_by: "파일 이름 또는 학번으로 검색",
+    // Grade scale
+    grade_scale: "성적 척도",
+    gwa_equivalency: "GWA 등가 표",
+    range: "범위",
+    // Split view
+    new_calculation: "새 계산 (편집 가능)",
+    saved_data: "저장된 데이터 (읽기 전용)",
+    calculate_new: "새로 계산",
+    save_this: "저장",
+    // Status
+    passed: "합격 ✅",
+    failed: "불합격 ❌",
+    low_grade: "낮은 성적 ⚠",
+    // Errors
+    invalid_input: "잘못된 입력 — 값을 확인하세요",
+    select_level: "먼저 학교 수준을 선택하세요.",
+    no_grades: "성적이 입력되지 않았습니다.",
+    // Countries
+    pisay: "Pisay",
+    deped: "DepEd",
+    standard: "표준",
+    others: "기타",
+    subject_name: "과목명",
+    converted: "환산",
+    period_quarter: "기간 / 분기",
+  },
+  ja: {
+    app_title: "GWA計算機",
+    nav_sub: "PISAY  /  DepEd  /  その他  /  国際",
+    student_info: "学生情報",
+    full_name: "氏名",
+    student_id: "学生ID",
+    grade_level: "学年",
+    section: "クラス",
+    quarter: "四半期",
+    settings: "設定",
+    system: "システム",
+    grading: "成績評価",
+    type: "タイプ",
+    school_level: "学校レベル",
+    elective: "選択科目",
+    core_sci: "コア科学",
+    subjects: "科目",
+    periods: "期間",
+    generate: "生成",
+    clear: "クリア",
+    save: "保存",
+    files: "ファイル",
+    search: "検索",
+    help: "ヘルプ",
+    calculate: "計算",
+    enter_grades: "成績を入力して計算をクリック",
+    grade_input: "成績入力",
+    add_subject: "+ 科目を追加",
+    remove_last: "- 最後を削除",
+    language: "言語",
+    percentile: "パーセンタイル",
+    gwa: "GWA",
+    subject: "科目",
+    overall: "総合",
+    desired_grade: "目標成績",
+    individual_subject: "個別科目と四半期GWA",
+    // Options
+    q1: "Q1", q2: "Q2", q3: "Q3", q4: "Q4",
+    // Buttons
+    view: "表示",
+    delete: "削除",
+    close: "閉じる",
+    ok: "OK",
+    yes: "はい",
+    no: "いいえ",
+    cancel: "キャンセル",
+    load_split: "分割ロード",
+    show_all: "すべて表示",
+    // Windows
+    help_guide: "ヘルプとガイド",
+    saved_files: "保存された成績ファイル",
+    search_files: "成績ファイルを検索",
+    split_view: "分割表示",
+    // Labels
+    file: "ファイル",
+    student: "学生",
+    id: "ID",
+    result: "結果",
+    entries: "エントリ",
+    entry: "エントリ",
+    // Messages
+    no_files: "保存されたファイルが見つかりません。",
+    no_results: "結果が見つかりません。",
+    generate_first: "保存する前に入力を生成してください。",
+    enter_name: "この成績ファイルの名前を入力してください:",
+    already_exists: "は既に存在します。上書きしますか？",
+    saved_as: "として保存されました",
+    delete_confirm: "削除",
+    // Search
+    search_placeholder: "ファイル名または学生IDで検索...",
+    query_placeholder: "クエリ...",
+    search_by: "ファイル名または学生IDで検索",
+    // Grade scale
+    grade_scale: "成績スケール",
+    gwa_equivalency: "GWA等価表",
+    range: "範囲",
+    // Split view
+    new_calculation: "新しい計算（編集可能）",
+    saved_data: "保存されたデータ（読み取り専用）",
+    calculate_new: "新規計算",
+    save_this: "保存",
+    // Status
+    passed: "合格 ✅",
+    failed: "不合格 ❌",
+    low_grade: "低成績 ⚠",
+    // Errors
+    invalid_input: "無効な入力 — 値を確認してください",
+    select_level: "最初に学校レベルを選択してください。",
+    no_grades: "成績が入力されていません。",
+    // Countries
+    pisay: "Pisay",
+    deped: "DepEd",
+    standard: "標準",
+    others: "その他",
+    subject_name: "科目名",
+    converted: "換算値",
+    period_quarter: "期間 / 四半期",
+  },
+
+  de: {
+    app_title: "GWA-Rechner",
+    nav_sub: "PISAY  /  DepEd  /  Andere  /  International",
+    student_info: "Studenteninfo",
+    full_name: "Vollständiger Name",
+    student_id: "Studenten-ID",
+    grade_level: "Klassenstufe",
+    section: "Abschnitt",
+    quarter: "Quartal",
+    settings: "Einstellungen",
+    system: "System",
+    grading: "Benotung",
+    type: "Typ",
+    school_level: "Schulniveau",
+    elective: "Wahlfach",
+    core_sci: "Kernwissenschaft",
+    subjects: "Fächer",
+    periods: "Zeiträume",
+    generate: "Generieren",
+    clear: "Löschen",
+    save: "Speichern",
+    files: "Dateien",
+    search: "Suchen",
+    help: "Hilfe",
+    calculate: "Berechnen",
+    enter_grades: "Noten eingeben und Berechnen klicken",
+    grade_input: "Noteneingabe",
+    add_subject: "+ Fach hinzufügen",
+    remove_last: "- Letztes entfernen",
+    language: "Sprache",
+    percentile: "Perzentil",
+    gwa: "GWA",
+    subject: "Fach",
+    overall: "Gesamt",
+    desired_grade: "Gewünschte Note",
+    individual_subject: "Einzelnes Fach & Quartal GWA",
+    // Options
+    q1: "Q1", q2: "Q2", q3: "Q3", q4: "Q4",
+    // Buttons
+    view: "Ansehen",
+    delete: "Löschen",
+    close: "Schließen",
+    ok: "OK",
+    yes: "Ja",
+    no: "Nein",
+    cancel: "Abbrechen",
+    load_split: "Geteilte Ansicht laden",
+    show_all: "Alle anzeigen",
+    // Windows
+    help_guide: "Hilfe & Anleitung",
+    saved_files: "Gespeicherte Notendateien",
+    search_files: "Notendateien durchsuchen",
+    split_view: "Geteilte Ansicht",
+    // Labels
+    file: "Datei",
+    student: "Student",
+    id: "ID",
+    result: "Ergebnis",
+    entries: "Einträge",
+    entry: "Eintrag",
+    // Messages
+    no_files: "Keine gespeicherten Dateien gefunden.",
+    no_results: "Keine Ergebnisse gefunden.",
+    generate_first: "Generieren Sie zuerst Eingaben, bevor Sie speichern.",
+    enter_name: "Geben Sie einen Namen für diese Notendatei ein:",
+    already_exists: "existiert bereits. Überschreiben?",
+    saved_as: "Gespeichert als",
+    delete_confirm: "Löschen",
+    // Search
+    search_placeholder: "Nach Dateiname oder Studenten-ID suchen...",
+    query_placeholder: "Abfrage...",
+    search_by: "Nach Dateiname oder Studenten-ID suchen",
+    // Grade scale
+    grade_scale: "Notenskala",
+    gwa_equivalency: "GWA-Äquivalenztabelle",
+    range: "Bereich",
+    // Split view
+    new_calculation: "Neue Berechnung (editierbar)",
+    saved_data: "Gespeicherte Daten (schreibgeschützt)",
+    calculate_new: "Neu berechnen",
+    save_this: "Speichern",
+    // Status
+    passed: "BESTANDEN ✅",
+    failed: "NICHT BESTANDEN ❌",
+    low_grade: "NIEDRIGE NOTE ⚠",
+    // Errors
+    invalid_input: "Ungültige Eingabe — überprüfen Sie Ihre Werte",
+    select_level: "Wählen Sie zuerst ein Schulniveau.",
+    no_grades: "Keine Noten eingegeben.",
+    // Countries
+    pisay: "Pisay",
+    deped: "DepEd",
+    standard: "Standard",
+    others: "Andere",
+    subject_name: "Fachname",
+    converted: "Umgewandelt",
+    period_quarter: "Zeitraum / Quartal",
+  },
+  zh: {
+    app_title: "GWA计算器",
+    nav_sub: "PISAY  /  DepEd  /  其他  /  国际",
+    student_info: "学生信息",
+    full_name: "姓名",
+    student_id: "学号",
+    grade_level: "年级",
+    section: "班级",
+    quarter: "季度",
+    settings: "设置",
+    system: "系统",
+    grading: "评分",
+    type: "类型",
+    school_level: "学校级别",
+    elective: "选修课",
+    core_sci: "核心科学",
+    subjects: "科目",
+    periods: "时期",
+    generate: "生成",
+    clear: "清除",
+    save: "保存",
+    files: "文件",
+    search: "搜索",
+    help: "帮助",
+    calculate: "计算",
+    enter_grades: "输入成绩后点击计算",
+    grade_input: "成绩输入",
+    add_subject: "+ 添加科目",
+    remove_last: "- 删除最后一个",
+    language: "语言",
+    percentile: "百分位",
+    gwa: "GWA",
+    subject: "科目",
+    overall: "总体",
+    desired_grade: "目标成绩",
+    individual_subject: "单个科目及季度GWA",
+    // Options
+    q1: "Q1", q2: "Q2", q3: "Q3", q4: "Q4",
+    // Buttons
+    view: "查看",
+    delete: "删除",
+    close: "关闭",
+    ok: "确定",
+    yes: "是",
+    no: "否",
+    cancel: "取消",
+    load_split: "加载拆分",
+    show_all: "显示全部",
+    // Windows
+    help_guide: "帮助与指南",
+    saved_files: "已保存的成绩文件",
+    search_files: "搜索成绩文件",
+    split_view: "拆分视图",
+    // Labels
+    file: "文件",
+    student: "学生",
+    id: "学号",
+    result: "结果",
+    entries: "条目",
+    entry: "条目",
+    // Messages
+    no_files: "未找到已保存的文件。",
+    no_results: "未找到结果。",
+    generate_first: "保存前请先生成输入。",
+    enter_name: "输入此成绩文件的名称：",
+    already_exists: "已存在。覆盖？",
+    saved_as: "保存为",
+    delete_confirm: "删除",
+    // Search
+    search_placeholder: "按文件名或学号搜索...",
+    query_placeholder: "查询...",
+    search_by: "按文件名或学号搜索",
+    // Grade scale
+    grade_scale: "成绩等级",
+    gwa_equivalency: "GWA等效表",
+    range: "范围",
+    // Split view
+    new_calculation: "新计算（可编辑）",
+    saved_data: "已保存数据（只读）",
+    calculate_new: "新计算",
+    save_this: "保存",
+    // Status
+    passed: "通过 ✅",
+    failed: "未通过 ❌",
+    low_grade: "低分 ⚠",
+    // Errors
+    invalid_input: "输入无效 — 请检查您的值",
+    select_level: "请先选择学校级别。",
+    no_grades: "未输入成绩。",
+    // Countries
+    pisay: "Pisay",
+    deped: "DepEd",
+    standard: "标准",
+    others: "其他",
+    subject_name: "科目名称",
+    converted: "换算",
+    period_quarter: "时期 / 季度",
+  },
+    school_levels: {
+      "Primary & Secondary": {
+        en: "Primary & Secondary",
+        ko: "초등 및 중등",
+        ja: "初等・中等教育",
+        de: "Primar- und Sekundarstufe",
+        zh: "小学与中学"
+      },
+      "College (GPA)": {
+        en: "College (GPA)",
+        ko: "대학 (GPA)",
+        ja: "大学 (GPA)",
+        de: "Hochschule (GPA)",
+        zh: "大学 (GPA)"
+      },
+      "Primary & Secondary (GCSE)": {
+        en: "Primary & Secondary (GCSE)",
+        ko: "초등 및 중등 (GCSE)",
+        ja: "初等・中等 (GCSE)",
+        de: "Primar- und Sekundarstufe (GCSE)",
+        zh: "小学与中学 (GCSE)"
+      },
+      "College (Degree)": {
+        en: "College (Degree)",
+        ko: "대학 (학위)",
+        ja: "大学 (学位)",
+        de: "Hochschule (Abschluss)",
+        zh: "大学 (学位)"
+      },
+      "Primary & Secondary": {
+        en: "Primary & Secondary",
+        ko: "초등 및 중등",
+        ja: "初等・中等教育",
+        de: "Primar- und Sekundarstufe",
+        zh: "小学与中学"
+      },
+      "College (HD Scale)": {
+        en: "College (HD Scale)",
+        ko: "대학 (HD 스케일)",
+        ja: "大学 (HDスケール)",
+        de: "Hochschule (HD-Skala)",
+        zh: "大学 (HD 等级)"
+      },
+      "Primary & Secondary (1-6)": {
+        en: "Primary & Secondary (1-6)",
+        ko: "초등 및 중등 (1-6)",
+        ja: "初等・中等 (1-6)",
+        de: "Primar- und Sekundarstufe (1-6)",
+        zh: "小学与中学 (1-6)"
+      },
+      "Upper Secondary (Abitur 0-15)": {
+        en: "Upper Secondary (Abitur 0-15)",
+        ko: "고등학교 (아비투어 0-15)",
+        ja: "高等学校 (アビトゥア 0-15)",
+        de: "Oberstufe (Abitur 0-15)",
+        zh: "高中 (大学入学资格考试 0-15)"
+      },
+      "College (1.0-5.0)": {
+        en: "College (1.0-5.0)",
+        ko: "대학 (1.0-5.0)",
+        ja: "大学 (1.0-5.0)",
+        de: "Hochschule (1.0-5.0)",
+        zh: "大学 (1.0-5.0)"
+      },
+      "Elementary & High School": {
+        en: "Elementary & High School",
+        ko: "초등 및 고등학교",
+        ja: "小学校・高等学校",
+        de: "Grund- und Oberschule",
+        zh: "小学与高中"
+      },
+      "College (GPA)": {
+        en: "College (GPA)",
+        ko: "대학 (GPA)",
+        ja: "大学 (GPA)",
+        de: "Hochschule (GPA)",
+        zh: "大学 (GPA)"
+      }
+    },
+
+        // Additional UI Texts for Inputs & Tables
+    ui: {
+      subject: { en: "Subject", ko: "과목", ja: "科目", de: "Fach", zh: "科目" },
+      period: { en: "Period", ko: "기간", ja: "期間", de: "Zeitraum", zh: "时期" },
+      quarter: { en: "Quarter", ko: "분기", ja: "四半期", de: "Quartal", zh: "季度" },
+      grade: { en: "Grade", ko: "성적", ja: "成績", de: "Note", zh: "成绩" },
+      converted: { en: "Converted", ko: "환산", ja: "換算値", de: "Umgewandelt", zh: "换算" },
+      value: { en: "Equiv", ko: "동등", ja: "同等", de: "Äquiv", zh: "等值" },
+      units: { en: "Units", ko: "단위", ja: "単位", de: "Einheiten", zh: "单位" },
+      entries: { en: "Entries", ko: "항목", ja: "エントリ", de: "Einträge", zh: "条目" },
+      status: { en: "Status", ko: "상태", ja: "状態", de: "Status", zh: "状态" }
+    },
+    // Dynamic hints for country systems
+    input_hints: {
+      "DE_ABITUR": {
+        en: "Points: 0–15 (15=best, 0=worst)",
+        ko: "점수: 0–15 (15=최고, 0=최저)",
+        ja: "ポイント: 0–15 (15=最高, 0=最低)",
+        de: "Punkte: 0–15 (15=best, 0=schlechtest)",
+        zh: "分数: 0–15 (15=最佳, 0=最差)"
+      },
+      "DE_1_6": {
+        en: "Grades: 1–6 (1=best, 6=worst)",
+        ko: "등급: 1–6 (1=최고, 6=최저)",
+        ja: "成績: 1–6 (1=最高, 6=最低)",
+        de: "Noten: 1–6 (1=sehr gut, 6=ungenügend)",
+        zh: "等级: 1–6 (1=最佳, 6=最差)"
+      }
+      // Add more if needed 
+    },
+}; 
+
+const COUNTRY_TRANSLATIONS = {
+    en: {
+    // Country names
+    country_united_states: "🇺🇸 United States",
+    country_united_kingdom: "🇬🇧 United Kingdom",
+    country_canada: "🇨🇦 Canada",
+    country_japan: "🇯🇵 Japan",
+    country_south_korea: "🇰🇷 South Korea",
+    country_australia: "🇦🇺 Australia",
+    country_germany: "🇩🇪 Germany",
+    country_taiwan: "🇹🇼 Taiwan",
+    country_china: "🇨🇳 China"
+  },
+  ko: {
+    // ... existing translations ...
+    // Country names
+    country_united_states: "🇺🇸 미국",
+    country_united_kingdom: "🇬🇧 영국",
+    country_canada: "🇨🇦 캐나다",
+    country_japan: "🇯🇵 일본",
+    country_south_korea: "🇰🇷 대한민국",
+    country_australia: "🇦🇺 호주",
+    country_germany: "🇩🇪 독일",
+    country_taiwan: "🇹🇼 대만",
+    country_china: "🇨🇳 중국"
+  },
+  ja: {
+    // ... existing translations ...
+    // Country names
+    country_united_states: "🇺🇸 アメリカ",
+    country_united_kingdom: "🇬🇧 イギリス",
+    country_canada: "🇨🇦 カナダ",
+    country_japan: "🇯🇵 日本",
+    country_south_korea: "🇰🇷 韓国",
+    country_australia: "🇦🇺 オーストラリア",
+    country_germany: "🇩🇪 ドイツ",
+    country_taiwan: "🇹🇼 台湾",
+    country_china: "🇨🇳 中国"
+  },
+  de: {
+    // ... existing translations ...
+    // Country names
+    country_united_states: "🇺🇸 Vereinigte Staaten",
+    country_united_kingdom: "🇬🇧 Vereinigtes Königreich",
+    country_canada: "🇨🇦 Kanada",
+    country_japan: "🇯🇵 Japan",
+    country_south_korea: "🇰🇷 Südkorea",
+    country_australia: "🇦🇺 Australien",
+    country_germany: "🇩🇪 Deutschland",
+    country_taiwan: "🇹🇼 Taiwan",
+    country_china: "🇨🇳 China"
+  },
+  zh: {
+    // ... existing translations ...
+    // Country names
+    country_united_states: "🇺🇸 美国",
+    country_united_kingdom: "🇬🇧 英国",
+    country_canada: "🇨🇦 加拿大",
+    country_japan: "🇯🇵 日本",
+    country_south_korea: "🇰🇷 韩国",
+    country_australia: "🇦🇺 澳大利亚",
+    country_germany: "🇩🇪 德国",
+    country_taiwan: "🇹🇼 台湾",
+    country_china: "🇨🇳 中国"
+  }
+};
+
+const HELP_TRANSLATIONS = {
+  en: {
+    help_sections: [
+      ["System", "Pisay locks grading to GWA and adds grade level/elective selectors.\nDepEd locks to Percentile.\nOthers/Standard allows free selection.\nCountry systems unlock a School Level selector."],
+      ["Country Systems — Letter Grade Input", "All country systems accept BOTH letter grades AND numeric values.\n\nUS P&S: A B C D F | US College: A A- B+ B B- C+ C C- D F\nUK GCSE: 9 8 7 6 5 4 3 2 1 U | UK Degree: 1st 2:1 2:2 3rd Fail\nCA P&S: A B C D F | CA College: A+ A A- B+ B B- C+ C D F\nJP P&S: S A B C F | JP College: A B C F\nKR P&S: A B C D E | KR College: A+ A B+ B C+ C D+ D F\nAU P&S: A B C D E | AU College: HD D C P F\n\nLetters are converted to their numeric midpoint automatically."],
+      ["Country Systems — School Level", "When you select a country system, a School Level dropdown appears.\nChoose Primary & Secondary or College (varies by country).\nThe grading scale locks to that country/level's official system automatically."],
+      ["Split View", "Open Files, then click 'Load Split' on any saved record.\nLEFT side: Enter new grades using the exact same system/type/school level as the saved file.\nRIGHT side: Shows the saved entries with letter to number conversion and the pre-calculated result.\nUse 'Calculate New' on the left to compute, then 'Save This' to store it."],
+      ["Country GPA Systems", "GPA systems (US College, Canada College, Korea College) use 0.0–4.0 or 0.0–4.5 scale.\nPercentage systems use 0–100. GCSE (UK P&S) uses 0–9.\nThe app auto-detects the correct scale."],
+      ["Desired Grade (Country Systems)", "Enter your current average grade, desired final grade, and remaining weight as a decimal.\nThe calculator tells you the required score in the same scale."],
+      ["Pass/Fail Colors", "Green = Passed. Yellow = Low Grade. Red = Failed.\nThresholds vary by country/level system."],
+      ["Arrow Key Navigation", "Use Up/Down/Left/Right arrow keys or Enter to move between grade input cells."],
+      ["Saving", "Click Save after generating inputs and filling them in.\nFiles are stored in your app or browser IndexedDB database."]
+    ]
+  },
+  ko: {
+    help_sections: [
+      ["시스템", "Pisay는 채점을 GWA로 고정하고 학년/선택과목 선택기를 추가합니다.\nDepEd는 백분위수로 고정됩니다.\nOthers/Standard는 자유 선택이 가능합니다.\n국가 시스템은 학교 수준 선택기를 활성화합니다."],
+      ["국가 시스템 — 문자 성적 입력", "모든 국가 시스템은 문자 성적과 숫자 값을 모두 허용합니다.\n\nUS P&S: A B C D F | US College: A A- B+ B B- C+ C C- D F\nUK GCSE: 9 8 7 6 5 4 3 2 1 U | UK Degree: 1st 2:1 2:2 3rd Fail\nCA P&S: A B C D F | CA College: A+ A A- B+ B B- C+ C D F\nJP P&S: S A B C F | JP College: A B C F\nKR P&S: A B C D E | KR College: A+ A B+ B C+ C D+ D F\nAU P&S: A B C D E | AU College: HD D C P F\n\n문자는 자동으로 숫자 중간값으로 변환됩니다."],
+      ["국가 시스템 — 학교 수준", "국가 시스템을 선택하면 학교 수준 드롭다운이 나타납니다.\n초등/중등 또는 대학을 선택하세요 (국가마다 다름).\n채점 척도는 해당 국가/수준의 공식 시스템으로 자동 고정됩니다."],
+      ["분할 보기", "파일을 열고 저장된 레코드에서 '분할 로드'를 클릭하세요.\n왼쪽: 저장된 파일과 동일한 시스템/유형/학교 수준을 사용하여 새 성적을 입력하세요.\n오른쪽: 문자→숫자 변환 및 미리 계산된 결과와 함께 저장된 항목을 표시합니다.\n왼쪽에서 '새로 계산'을 클릭하여 계산하고, '저장'을 클릭하여 저장하세요."],
+      ["국가 GPA 시스템", "GPA 시스템(미국 대학, 캐나다 대학, 한국 대학)은 0.0–4.0 또는 0.0–4.5 척도를 사용합니다.\n백분율 시스템은 0–100을 사용합니다. GCSE(영국 P&S)는 0–9를 사용합니다.\n앱이 올바른 척도를 자동으로 감지합니다."],
+      ["목표 성적 (국가 시스템)", "현재 평균 성적, 목표 최종 성적, 남은 가중치를 소수로 입력하세요.\n계산기가 동일한 척도에서 필요한 점수를 알려줍니다."],
+      ["합격/불합격 색상", "초록색 = 합격. 노란색 = 낮은 성적. 빨간색 = 불합격.\n기준은 국가/수준 시스템에 따라 다릅니다."],
+      ["화살표 키 탐색", "위/아래/왼쪽/오른쪽 화살표 키 또는 Enter 키를 사용하여 성적 입력 셀 간을 이동하세요."],
+      ["저장", "입력을 생성하고 채운 후 저장을 클릭하세요.\n파일은 앱 또는 브라우저 IndexedDB 데이터베이스에 저장됩니다."]
+    ]
+  },
+  ja: {
+    help_sections: [
+      ["システム", "PisayはGWAに固定し、学年/選択科目セレクターを追加します。\nDepEdはパーセンタイルに固定されます。\nOthers/Standardは自由に選択できます。\n国システムは学校レベルセレクターを解除します。"],
+      ["国システム — 文字成績入力", "すべての国システムは文字成績と数値の両方を受け入れます。\n\nUS P&S: A B C D F | US College: A A- B+ B B- C+ C C- D F\nUK GCSE: 9 8 7 6 5 4 3 2 1 U | UK Degree: 1st 2:1 2:2 3rd Fail\nCA P&S: A B C D F | CA College: A+ A A- B+ B B- C+ C D F\nJP P&S: S A B C F | JP College: A B C F\nKR P&S: A B C D E | KR College: A+ A B+ B C+ C D+ D F\nAU P&S: A B C D E | AU College: HD D C P F\n\n文字は自動的に数値の中間点に変換されます。"],
+      ["国システム — 学校レベル", "国システムを選択すると学校レベルのドロップダウンが表示されます。\n初等・中等教育または大学を選択してください（国によって異なります）。\n採点スケールはその国/レベルの公式システムに自動的にロックされます。"],
+      ["分割表示", "ファイルを開き、保存されたレコードで「分割ロード」をクリックします。\n左側：保存されたファイルと同じシステム/タイプ/学校レベルを使用して新しい成績を入力します。\n右側：文字から数値への変換と事前計算された結果を含む保存済みエントリを表示します。\n左側で「新規計算」をクリックして計算し、「保存」をクリックして保存します。"],
+      ["国GPAシステム", "GPAシステム（米国大学、カナダ大学、韓国大学）は0.0〜4.0または0.0〜4.5スケールを使用します。\nパーセンテージシステムは0〜100を使用します。GCSE（英国P&S）は0〜9を使用します。\nアプリが正しいスケールを自動検出します。"],
+      ["目標成績（国システム）", "現在の平均成績、希望する最終成績、残りのウェイトを小数で入力します。\n計算機が同じスケールで必要なスコアを教えます。"],
+      ["合格/不合格の色", "緑 = 合格。黄色 = 低成績。赤 = 不合格。\n閾値は国/レベルシステムによって異なります。"],
+      ["矢印キーナビゲーション", "上/下/左/右の矢印キーまたはEnterキーを使用して成績入力セル間を移動します。"],
+      ["保存", "入力を生成して記入した後、保存をクリックします。\nファイルはアプリまたはブラウザのIndexedDBデータベースに保存されます。"]
+    ]
+  },
+  de: {
+    help_sections: [
+      ["System", "Pisay sperrt die Benotung auf GWA und fügt Klassen-/Wahlfachselektoren hinzu.\nDepEd sperrt auf Perzentil.\nOthers/Standard ermöglicht freie Auswahl.\nLändersysteme entsperren einen Schulniveau-Selektor."],
+      ["Ländersysteme — Buchstabennoten-Eingabe", "Alle Ländersysteme akzeptieren sowohl Buchstabennoten als auch numerische Werte.\n\nUS P&S: A B C D F | US College: A A- B+ B B- C+ C C- D F\nUK GCSE: 9 8 7 6 5 4 3 2 1 U | UK Degree: 1st 2:1 2:2 3rd Fail\nCA P&S: A B C D F | CA College: A+ A A- B+ B B- C+ C D F\nJP P&S: S A B C F | JP College: A B C F\nKR P&S: A B C D E | KR College: A+ A B+ B C+ C D+ D F\nAU P&S: A B C D E | AU College: HD D C P F\n\nBuchstaben werden automatisch in numerische Mittelwerte umgewandelt."],
+      ["Ländersysteme — Schulniveau", "Bei Auswahl eines Ländersystems erscheint ein Schulniveau-Dropdown.\nWählen Sie Primar-/Sekundarstufe oder Hochschule (je nach Land).\nDie Bewertungsskala wird automatisch auf das offizielle System des Landes/Niveaus gesperrt."],
+      ["Geteilte Ansicht", "Dateien öffnen, dann bei einem gespeicherten Datensatz auf 'Geteilte Ansicht laden' klicken.\nLinks: Neue Noten mit demselben System/Typ/Schulniveau wie die gespeicherte Datei eingeben.\nRechts: Zeigt die gespeicherten Einträge mit Buchstaben-zu-Zahl-Konvertierung und vorberechnetem Ergebnis.\nLinks 'Neu berechnen' klicken, dann 'Speichern'."],
+      ["Länder-GPA-Systeme", "GPA-Systeme (US College, Kanada College, Korea College) verwenden eine 0,0–4,0 oder 0,0–4,5 Skala.\nProzentualsysteme verwenden 0–100. GCSE (UK P&S) verwendet 0–9.\nDie App erkennt automatisch die korrekte Skala."],
+      ["Gewünschte Note (Ländersysteme)", "Geben Sie Ihre aktuelle Durchschnittsnote, gewünschte Endnote und verbleibende Gewichtung als Dezimalzahl ein.\nDer Rechner zeigt die erforderliche Punktzahl auf derselben Skala an."],
+      ["Bestanden/Nicht bestanden Farben", "Grün = Bestanden. Gelb = Niedrige Note. Rot = Nicht bestanden.\nSchwellenwerte variieren je nach Land/Niveausystem."],
+      ["Pfeiltastennavigation", "Verwenden Sie die Pfeiltasten Oben/Unten/Links/Rechts oder die Eingabetaste, um zwischen den Noteneingabezellen zu wechseln."],
+      ["Speichern", "Klicken Sie auf Speichern, nachdem Sie die Eingaben generiert und ausgefüllt haben.\nDateien werden in der App oder der Browser-IndexedDB-Datenbank gespeichert."]
+    ]
+  },
+  zh: {
+    help_sections: [
+      ["系统", "Pisay将评分锁定为GWA，并添加年级/选修课选择器。\nDepEd锁定为百分位。\nOthers/Standard允许自由选择。\n国家系统解锁学校级别选择器。"],
+      ["国家系统 — 字母成绩输入", "所有国家系统都接受字母成绩和数值。\n\nUS P&S: A B C D F | US College: A A- B+ B B- C+ C C- D F\nUK GCSE: 9 8 7 6 5 4 3 2 1 U | UK Degree: 1st 2:1 2:2 3rd Fail\nCA P&S: A B C D F | CA College: A+ A A- B+ B B- C+ C D F\nJP P&S: S A B C F | JP College: A B C F\nKR P&S: A B C D E | KR College: A+ A B+ B C+ C D+ D F\nAU P&S: A B C D E | AU College: HD D C P F\n\n字母会自动转换为其数值中点。"],
+      ["国家系统 — 学校级别", "选择国家系统时会出现学校级别下拉菜单。\n选择小学/中学或大学（因国家而异）。\n评分等级会自动锁定为该国家/级别的官方系统。"],
+      ["拆分视图", "打开文件，然后在任意已保存记录上点击(加载拆分)。\n左侧：使用与已保存文件完全相同的系统/类型/学校级别输入新成绩。\n右侧：显示已保存的条目，包含字母到数字的换算及预先计算的结果。\n点击左侧的(新计算)进行计算，然后点击(保存)存储。"],
+      ["国家GPA系统", "GPA系统（美国大学、加拿大大学、韩国大学）使用0.0–4.0或0.0–4.5等级。\n百分比系统使用0–100。GCSE（英国P&S）使用0–9。\n应用会自动检测正确的等级。"],
+      ["目标成绩（国家系统）", "输入您当前的平均成绩、目标最终成绩和剩余权重（小数形式）。\n计算器将以相同等级告知您所需分数。"],
+      ["通过/未通过颜色", "绿色 = 通过。黄色 = 低分。红色 = 未通过。\n阈值因国家/级别系统而异。"],
+      ["箭头键导航", "使用上/下/左/右箭头键或Enter键在成绩输入单元格之间移动。"],
+      ["保存", "生成输入并填写后点击保存。\n文件存储在应用程序或浏览器的IndexedDB数据库中。"]
+    ]
+  }
+};
+
+for (const [lang, data] of Object.entries(COUNTRY_TRANSLATIONS)) {
+  if (TRANSLATIONS[lang] && data && typeof data === 'object' && !Array.isArray(data) && !data.help_sections) {
+    Object.assign(TRANSLATIONS[lang], data);
+  }
+}
+
+for (const [lang, data] of Object.entries(COUNTRY_TRANSLATIONS)) {
+  if (TRANSLATIONS[lang] && data && typeof data === 'object' && !Array.isArray(data) && !data.help_sections) {
+    Object.assign(TRANSLATIONS[lang], data);
+  }
+}
+
+for (const [lang, data] of Object.entries(COUNTRY_TRANSLATIONS)) {
+  if (TRANSLATIONS[lang] && data && typeof data === 'object' && !Array.isArray(data) && !data.help_sections) {
+    Object.assign(TRANSLATIONS[lang], data);
+  }
+}
+
+let currentLang = localStorage.getItem('gwa_language') || 'en';
+
+function t(key) {
+  return TRANSLATIONS[currentLang][key] || TRANSLATIONS.en[key] || key;
+}
+
+function ui(key) {
+  if (TRANSLATIONS.ui && TRANSLATIONS.ui[key]) {
+    return TRANSLATIONS.ui[key][currentLang] || TRANSLATIONS.ui[key].en || key;
+  }
+  return key;
+}
+
+
+function getInputHint(scale) {
+  const hints = TRANSLATIONS[currentLang]?.input_hints || TRANSLATIONS.en.input_hints;
+  return hints[scale] || LETTER_HINTS[scale] || '';
+}
+
+function translateSchoolLevel(level) {
+  if (!level) return level;
+  const levels = TRANSLATIONS.school_levels;
+  if (levels && levels[level]) {
+    return levels[level][currentLang] || levels[level].en || level;
+  }
+  return level;
+}
+
+function translateCountryName(countryKey) {
+  const mapping = {
+    "🇺🇸 United States": "country_united_states",
+    "🇬🇧 United Kingdom": "country_united_kingdom",
+    "🇨🇦 Canada": "country_canada",
+    "🇯🇵 Japan": "country_japan",
+    "🇰🇷 South Korea": "country_south_korea",
+    "🇦🇺 Australia": "country_australia",
+    "🇩🇪 Germany": "country_germany",
+    "🇹🇼 Taiwan  ": "country_taiwan",
+    "🇹🇼 Taiwan": "country_taiwan", 
+    "🇨🇳 China": "country_china"
+  };
+  return mapping[countryKey] ? t(mapping[countryKey]) : countryKey;
+}
+
+function tType(type) {
+  const map = {
+    'Subject': t('subject'),
+    'Overall': t('overall'),
+    'Desired Grade': t('desired_grade'),
+    'Individual Subject & Quarter GWA': t('individual_subject')
+  };
+  return map[type] || type;
+}
+
+function updateUILanguage() {
+  // Batch all DOM updates - read first, then write to avoid layout thrashing
+  const updates = [];
+
+  updates.push(['nav-title', 'textContent', t('app_title')]);
+  updates.push(['nav-sub', 'textContent', t('nav_sub')]);
+
+  // Apply batched updates
+  for (const [id, prop, val] of updates) {
+    const el = document.getElementById(id);
+    if (el) el[prop] = val;
+  }
+
+  const cardHeaders = document.querySelectorAll('.card-header');
+  if (cardHeaders[0]) cardHeaders[0].textContent = t('student_info');
+  if (cardHeaders[1]) cardHeaders[1].textContent = t('settings');
+
+  const gradeInputTitle = document.getElementById('grade-input-title');
+  if (gradeInputTitle) gradeInputTitle.textContent = t('grade_input');
+
+  // Student info labels - use data attributes to avoid text-matching lag
+  const labelKeys = {
+    'stu-name': 'full_name', 'stu-id': 'student_id', 'stu-grade': 'grade_level',
+    'stu-section': 'section', 'stu-quarter': 'quarter'
+  };
+  for (const [id, key] of Object.entries(labelKeys)) {
+    const input = document.getElementById(id);
+    if (input && input.previousElementSibling) input.previousElementSibling.textContent = t(key);
+  }
+
+  // Settings labels by ID - direct and fast
+  const settingsLabelMap = [
+    ['sys-select', 'system'], ['grading-select', 'grading'], ['type-select', 'type']
+  ];
+  for (const [inputId, key] of settingsLabelMap) {
+    const el = document.getElementById(inputId);
+    if (el && el.previousElementSibling) el.previousElementSibling.textContent = t(key);
+  }
+
+  // School level, elective, core labels
+  const slLabel = document.querySelector('#school-level-row .form-label');
+  if (slLabel) slLabel.textContent = t('school_level');
+  const elLabel = document.querySelector('#elect-row .form-label');
+  if (elLabel) elLabel.textContent = t('elective');
+  const coLabel = document.querySelector('#core-row .form-label');
+  if (coLabel) coLabel.textContent = t('core_sci');
+
+  // Num label
+  const numLbl = document.getElementById('num-label');
+  if (numLbl) numLbl.textContent = (state.calcType === 'Overall') ? t('periods') : t('subjects');
+
+  // Translate selects - grading
+  const gradingSelect = document.getElementById('grading-select');
+  if (gradingSelect) {
+    Array.from(gradingSelect.options).forEach(opt => {
+      if (opt.value === 'Percentile') opt.textContent = t('percentile');
+      else if (opt.value === 'GWA') opt.textContent = t('gwa');
+    });
+  }
+
+  // Translate type select
+  const typeSelect = document.getElementById('type-select');
+  if (typeSelect) {
+    Array.from(typeSelect.options).forEach(opt => { opt.textContent = tType(opt.value); });
+  }
+
+  // Quarter select
+  const quarterSelect = document.getElementById('stu-quarter');
+  if (quarterSelect) {
+    Array.from(quarterSelect.options).forEach((opt, i) => { opt.textContent = t('q'+(i+1)); });
+  }
+
+  // System select - only translate known values, keep country flags as-is
+  const sysSelect = document.getElementById('sys-select');
+  if (sysSelect) {
+    const currentValue = sysSelect.value;
+    Array.from(sysSelect.options).forEach(opt => {
+      const v = opt.value;
+      if (v === 'Pisay') opt.textContent = t('pisay');
+      else if (v === 'DepEd') opt.textContent = t('deped');
+      else if (v === 'Standard') opt.textContent = t('standard');
+      else if (v === 'Others') opt.textContent = t('others');
+      else opt.textContent = translateCountryName(v);
+    });
+    sysSelect.value = currentValue;
+  }
+
+  // School level dropdown - translate if country system
+  const slSel = document.getElementById('school-level-select');
+  if (slSel && isCountrySystem(state.system)) {
+    const levels = COUNTRY_SYSTEMS[state.system] ? COUNTRY_SYSTEMS[state.system].levels || [] : [];
+    const curVal = slSel.value;
+    slSel.innerHTML = '';
+    for (const lv of levels) {
+      const o = document.createElement('option');
+      o.value = lv; o.textContent = translateSchoolLevel(lv);
+      slSel.appendChild(o);
+    }
+    if (levels.includes(curVal)) slSel.value = curVal;
+    else if (levels.length) slSel.value = levels[0];
+  }
+
+  // Nav buttons
+  const navBtns = document.querySelectorAll('#nav-right .btn');
+  navBtns.forEach(btn => {
+    const oc = btn.getAttribute('onclick') || '';
+    if (oc.includes('showLanguageSelector')) btn.textContent = t('language');
+    else if (oc.includes('handleSave')) btn.textContent = t('save');
+    else if (oc.includes('showSavedWindow')) btn.textContent = t('files');
+    else if (oc.includes('showSearchWindow')) btn.textContent = t('search');
+    else if (oc.includes('showHelpWindow')) btn.textContent = t('help');
+  });
+
+  // Generate/Clear buttons
+  const generateBtn = document.querySelector('#settings-body .btn-primary');
+  if (generateBtn) generateBtn.textContent = t('generate');
+  const clearBtn = document.querySelector('#settings-body .btn-danger');
+  if (clearBtn) clearBtn.textContent = t('clear');
+
+  // Add/remove subject buttons
+  const addBtn = document.getElementById('add-subj-btn');
+  if (addBtn) addBtn.textContent = t('add_subject');
+  const rmBtn = document.getElementById('rm-subj-btn');
+  if (rmBtn) rmBtn.textContent = t('remove_last');
+
+  // Calculate button
+  const calcBtn = document.querySelector('#result-bar .btn-primary');
+  if (calcBtn) calcBtn.textContent = t('calculate');
+
+  setResult(t('enter_grades'), 'var(--fg-muted)');
+  refreshRightPanel();
+}
+
+function onSchoolLevelChange() {
+  state.schoolLevel = document.getElementById('school-level-select').value;
+  updateGradingForCountry();
+  updateCountryInfo();
+  refreshRightPanel();
+}
+
+function showLanguageSelector() {
+  const langs = [
+    {code: 'en', name: 'English'},
+    {code: 'ko', name: '한국어 (Korean)'},
+    {code: 'ja', name: '日本語 (Japanese)'},
+    {code: 'de', name: 'Deutsch (German)'},
+    {code: 'zh', name: '中文 (Mandarin)'}
+  ];
+  
+  const win = document.createElement('div');
+  win.style.cssText = 'display:flex;flex-direction:column;width:100%;';
+  
+  const hdr = document.createElement('div');
+  hdr.className = 'modal-header';
+  hdr.innerHTML = `<span>${t('language')}</span><button class="btn btn-ghost btn-sm" onclick="closeModal()">X</button>`;
+  
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  body.style.cssText = 'background:var(--bg-surface);padding:12px;min-width:320px;';
+  
+  for (const lang of langs) {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary';
+    btn.style.cssText = 'width:100%;padding:12px;margin:4px 0;font-size:14px;';
+    if (lang.code === currentLang) {
+      btn.style.background = 'var(--success)';
+    }
+    btn.textContent = lang.name;
+    btn.onclick = () => {
+      currentLang = lang.code;
+      localStorage.setItem('gwa_language', lang.code);
+      updateUILanguage();
+      closeModal();
+      alertMsg(`Language changed to ${lang.name}`);
+    };
+    body.appendChild(btn);
+  }
+  
+  win.append(hdr, body);
+  showModal(win);
+}
+
+const ORIGINAL_SYSTEMS = ["Pisay","DepEd","Standard"];
+const COUNTRY_NAMES = Object.keys(COUNTRY_SYSTEMS);
+const ALL_SYSTEMS = [...ORIGINAL_SYSTEMS,...COUNTRY_NAMES];
+const CORE_SUBJECTS = ["Biology","Chemistry","Physics"];
+const GWA_TABLE = [
+  ["96–100","1.00"],["90–95","1.25"],["84–89","1.50"],
+  ["78–83","1.75"],["72–77","2.00"],["66–71","2.25"],
+  ["60–65","2.50"],["55–59","2.75"],["Below 55","3.00 or below"]
+];
+
+// ─────────────────────────────────────────────
+//  STORAGE (IndexedDB — closest HTML equiv to SQLite)
+// ─────────────────────────────────────────────
+const DB_NAME = 'gwa_calculator', DB_VERSION = 1, STORE = 'grade_files';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        const store = db.createObjectStore(STORE, { keyPath: 'file_name' });
+        store.createIndex('created_at', 'created_at', { unique: false });
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function dbLoadAll() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).index('created_at').getAll();
+    req.onsuccess = e => resolve(e.target.result.reverse()); // DESC order
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function dbSave(record) {
+  if (!record.created_at) record.created_at = Date.now();
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(record);
+    tx.oncomplete = resolve;
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
+
+async function dbSearch(query) {
+  const q = query.toLowerCase();
+  const all = await dbLoadAll();
+  return all.filter(r =>
+    (r.file_name||'').toLowerCase().includes(q) ||
+    (r.student_id||'').toLowerCase().includes(q)
+  );
+}
+
+async function dbDelete(fileName) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(fileName);
+    tx.oncomplete = resolve;
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────
+function parseFraction(v) {
+  v = v.trim();
+  if (v.includes('/')) {
+    const parts = v.split('/');
+    const n = parseFloat(parts[0]), d = parseFloat(parts[1]);
+    if (d === 0) throw new Error("Division by zero");
+    return n / d;
+  }
+  const f = parseFloat(v);
+  if (isNaN(f)) throw new Error("Not a number");
+  return f;
+}
+
+function convertToGWA(gwa) {
+  if (gwa >= 96) return "1.00";
+  else if (gwa >= 90) return "1.25";
+  else if (gwa >= 84) return "1.50";
+  else if (gwa >= 78) return "1.75";
+  else if (gwa >= 72) return "2.00";
+  else if (gwa >= 66) return "2.25";
+  else if (gwa >= 60) return "2.50";
+  else if (gwa >= 55) return "2.75";
+  else return "3.00 or below";
+}
+
+function capVal(v) { return Math.min(v, 100.0); }
+
+function toNum(v, isGwa=false) {
+  if (!v) return null;
+  try {
+    v = v.trim();
+    if (!isGwa) {
+      let val;
+      if (v.endsWith('%')) { val = parseFloat(v) / 100; }
+      else { val = parseFraction(v); if (val > 1) val /= 100; }
+      return (val >= 0 && val <= 1) ? val : null;
+    } else {
+      const val = parseFraction(v);
+      return (val >= 1 && val <= 5) ? val : null;
+    }
+  } catch { return null; }
+}
+
+function toNumCountry(v, mode) {
+  if (!v) return null;
+  try {
+    const val = parseFraction(v.trim());
+    if (mode === "Percentage") return (val >= 0 && val <= 100) ? val : null;
+    if (mode === "GPA_4") return (val >= 0 && val <= 4.0) ? val : null;
+    if (mode === "GPA_4_5") return (val >= 0 && val <= 4.5) ? val : null;
+    if (mode === "GCSE") return (val >= 0 && val <= 9) ? val : null;
+    if (mode === "DE_1_6") return (val >= 1 && val <= 6) ? val : null;
+    if (mode === "DE_ABITUR") return (val >= 0 && val <= 15) ? val : null;
+    if (mode === "DE_UNI") return (val >= 1.0 && val <= 5.0) ? val : null;
+    return (val >= 0 && val <= 100) ? val : null;
+  } catch { return null; }
+}
+
+function parseCountryEntry(raw, scale, mode) {
+  if (!raw || !raw.trim()) return [null, null];
+  const key = raw.trim().toUpperCase();
+  const lmap = LETTER_MAP[scale] || {};
+  if (lmap[key] !== undefined) return [lmap[key], raw.trim()];
+  // special: multi-char like "2:1"
+  const key2 = raw.trim().toUpperCase();
+  if (lmap[key2] !== undefined) return [lmap[key2], raw.trim()];
+  const numeric = toNumCountry(raw, mode);
+  if (numeric !== null) return [numeric, null];
+  throw new Error(`Invalid value '${raw}'. ${LETTER_HINTS[scale] || 'Enter a valid grade.'}`);
+}
+
+function resolveEntryToNumeric(raw, scale, mode) {
+  if (!raw || !String(raw).trim()) return null;
+  try { const [n] = parseCountryEntry(String(raw), scale, mode); return n; }
+  catch { return null; }
+}
+
+function formatNumericForMode(val, mode) {
+  if (val === null || val === undefined) return "—";
+  if (mode === "GPA_4" || mode === "GPA_4_5") return val.toFixed(2);
+  if (mode === "GCSE") return val.toFixed(1);
+  if (mode === "DE_1_6") return val.toFixed(0);
+  if (mode === "DE_ABITUR") return val.toFixed(0) + " pts";
+  if (mode === "DE_UNI") return val.toFixed(1);
+  return val.toFixed(1) + "%";
+}
+
+function getCountryInfo(system, schoolLevel) {
+  if (!system || !schoolLevel) return null;
+
+  // Direct match
+  if (COUNTRY_SYSTEMS[system] && COUNTRY_SYSTEMS[system][schoolLevel]) {
+    return COUNTRY_SYSTEMS[system][schoolLevel];
+  }
+
+  // Fuzzy match (handles flags or partial names)
+  for (const [key, data] of Object.entries(COUNTRY_SYSTEMS)) {
+    if (key.includes(system) || system.includes(key.split(' ')[0])) {
+      if (data[schoolLevel]) return data[schoolLevel];
+    }
+  }
+  return null;
+}
+
+function isCountrySystem(system) {
+  if (!system) return false;
+  return Object.keys(COUNTRY_SYSTEMS).some(key => 
+    key === system || key.includes(system) || system.includes(key)
+  );
+}
+
+function getCountryInfo(system, schoolLevel) {
+  if (!system || !schoolLevel) return null;
+
+  // Direct match with flag
+  if (COUNTRY_SYSTEMS[system] && COUNTRY_SYSTEMS[system][schoolLevel]) {
+    return COUNTRY_SYSTEMS[system][schoolLevel];
+  }
+
+  // Fuzzy match for flags or partial names
+  for (const [key, data] of Object.entries(COUNTRY_SYSTEMS)) {
+    if (key.includes(system) || system.includes(key.split(" ")[0])) {
+      if (data[schoolLevel]) return data[schoolLevel];
+    }
+  }
+  return null;
+}
+
+function getCountryInfo(system, schoolLevel) {
+  if (!system || !schoolLevel) return null;
+
+  // Direct match
+  if (COUNTRY_SYSTEMS[system] && COUNTRY_SYSTEMS[system][schoolLevel]) {
+    return COUNTRY_SYSTEMS[system][schoolLevel];
+  }
+
+  // Fuzzy match for flags or partial names
+  for (const [key, data] of Object.entries(COUNTRY_SYSTEMS)) {
+    if (key.includes(system) || system.includes(key.split(" ")[0])) {
+      if (data[schoolLevel]) return data[schoolLevel];
+    }
+  }
+  return null;
+}
+
+function ordinal(n) {
+  if (n >= 10 && n <= 20) return n + "th";
+  const s = ["th","st","nd","rd","th","th","th","th","th","th"][n % 10];
+  return n + s;
+}
+
+function countryStatus(value, system, schoolLevel) {
+  const info = getCountryInfo(system, schoolLevel);
+  if (!info) return ["?","pass"];
+  const passing = info.passing, mode = info.grading_mode;
+  if (mode === "GPA_4" || mode === "GPA_4_5") {
+    if (value >= passing) return ["PASSED ✅","pass"];
+    else if (value >= passing * 0.75) return ["LOW GRADE ⚠","low"];
+    else return ["FAILED ❌","fail"];
+  } else if (mode === "GCSE") {
+    if (value >= passing) return ["PASSED ✅","pass"];
+    else if (value >= passing - 1) return ["LOW GRADE ⚠","low"];
+    else return ["FAILED ❌","fail"];
+  } else {
+    if (value >= passing) return ["PASSED ✅","pass"];
+    else if (value >= passing * 0.9) return ["LOW GRADE ⚠","low"];
+    else return ["FAILED ❌","fail"];
+  }
+}
+
+function gwaStatus(value, system="", grading="", schoolLevel="") {
+  if (isCountrySystem(system)) return countryStatus(value, system, schoolLevel);
+  const isGwaMode = (grading === "GWA");
+  if (isGwaMode) {
+    if (system === "Pisay") {
+      if (value <= 2.25) return ["PASSED ✅","pass"];
+      else if (value <= 3.00) return ["LOW GRADE ⚠","low"];
+      else return ["FAILED ❌","fail"];
+    } else {
+      if (value <= 3.00) return ["PASSED ✅","pass"];
+      else if (value <= 3.50) return ["LOW GRADE ⚠","low"];
+      else return ["FAILED ❌","fail"];
+    }
+  } else {
+    if (system === "Pisay") {
+      const equiv = convertToGWA(value);
+      try {
+        const gv = parseFloat(equiv.split(' ')[0]);
+        if (gv <= 2.25) return ["PASSED ✅","pass"];
+        else if (gv <= 3.00) return ["LOW GRADE ⚠","low"];
+        else return ["FAILED ❌","fail"];
+      } catch {}
+    }
+    return value >= 60 ? ["PASSED ✅","pass"] : ["FAILED ❌","fail"];
+  }
+}
+
+function statusColors(colorKey) {
+  return {
+    pass: ["var(--pass-bg)","var(--pass-fg)","var(--success)"],
+    low:  ["var(--low-bg)", "var(--low-fg)", "var(--warning)"],
+    fail: ["var(--fail-bg)","var(--fail-fg)","var(--danger)"]
+  }[colorKey] || ["var(--bg-card2)","var(--fg-muted)","var(--fg-muted)"];
+}
+
+function countryGradeLabel(value, system, schoolLevel) {
+  const info = getCountryInfo(system, schoolLevel);
+  if (!info) return "";
+  const mode = info.grading_mode, grades = info.grades || [];
+  if (mode === "GPA_4" || mode === "GPA_4_5") {
+    let best = null, bestDiff = Infinity;
+    for (const g of grades) {
+      const diff = Math.abs(value - g[1]);
+      if (diff < bestDiff) { bestDiff = diff; best = g[0]; }
+    }
+    return best || "";
+  } else {
+    for (const g of grades) {
+      const lo = g[1], hi = g[2];
+      if (lo <= value && value <= hi) {
+        const extra = g[3] || "";
+        return g[0] + (extra ? ` (${extra})` : "");
+      }
+    }
+  }
+  return "";
+}
+
+function countryGpaEquivalent(value, system, schoolLevel) {
+  const info = getCountryInfo(system, schoolLevel);
+  if (!info) return null;
+  const scale = info.scale, grades = info.grades || [];
+  if (["US_PS","CA_PS","JP_COL","JP_PS","AU_HD","AU_PS","KR_PS","UK_GCSE","UK_DEG"].includes(scale)) {
+    for (const g of grades) {
+      const lo = g[1], hi = g[2];
+      if (lo <= value && value <= hi && g[3]) return g[3];
+    }
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────
+//  COMPUTATION
+// ─────────────────────────────────────────────
+function computeResult(entryVals, sysVal, gradingVal, typVal) {
+  if (sysVal === "Pisay" && typVal === "Subject") {
+    let total = 0, units = 0;
+    for (let i = 0; i < entryVals.length; i += 2) {
+      const g = toNum(String(entryVals[i]), true);
+      if (g === null) throw new Error("Invalid GWA grade");
+      const u = parseFloat(entryVals[i+1]) || 1;
+      total += g * u; units += u;
+    }
+    if (units === 0) throw new Error("No units");
+    const v = total / units;
+    return [`GWA: ${v.toFixed(4)}`, v];
+  }
+  if ((sysVal === "Others" || sysVal === "Standard") && typVal === "Subject" && gradingVal === "GWA") {
+    let total = 0, units = 0;
+    for (let i = 0; i < entryVals.length; i += 2) {
+      const g = toNum(String(entryVals[i]), true);
+      if (g === null) throw new Error("Invalid GWA grade");
+      const u = parseFloat(entryVals[i+1]) || 1;
+      total += g * u; units += u;
+    }
+    if (units === 0) throw new Error("No units");
+    const v = total / units;
+    return [`GWA: ${v.toFixed(4)}`, v];
+  }
+  if (gradingVal === "Percentile") {
+    const vals = entryVals.map(e => toNum(String(e)));
+    if (vals.some(v => v === null)) throw new Error("Invalid percentile value");
+    const avg = (vals.reduce((a,b) => a+b, 0) / vals.length) * 100;
+    const lbl = typVal === "Subject" ? "Quarter Grade" : "Average";
+    return [`${lbl}: ${avg.toFixed(2)}%`, avg];
+  }
+  if (typVal === "Overall" && gradingVal === "GWA") {
+    const p = toNum(String(entryVals[0]), true);
+    const pw = toNum(String(entryVals[1]));
+    const c = toNum(String(entryVals[2]), true);
+    const cw = toNum(String(entryVals[3]));
+    if ([p,pw,c,cw].some(v => v===null)) throw new Error("Invalid input");
+    const val = p * pw + c * cw;
+    return [`Final Quarter Grade: ${val.toFixed(4)}`, val];
+  }
+  throw new Error("Unhandled mode");
+}
+
+function computeResultCountryFromList(rawVals, system, schoolLevel, typVal) {
+  const info = getCountryInfo(system, schoolLevel);
+  if (!info) throw new Error("Unknown country/level combination.");
+  const mode = info.grading_mode, scale = info.scale;
+  const values = [];
+  for (const raw of rawVals) {
+    const r = String(raw).trim();
+    if (!r) continue;
+    const [numeric] = parseCountryEntry(r, scale, mode);
+    if (numeric === null) throw new Error(`Invalid saved value '${raw}'.`);
+    values.push(numeric);
+  }
+  if (values.length === 0) throw new Error("No grades.");
+  const avg = values.reduce((a,b) => a+b, 0) / values.length;
+  const label = typVal === "Subject" ? "Average" : "Overall Average";
+  if (mode === "GPA_4" || mode === "GPA_4_5") return [`${label}: ${avg.toFixed(3)}`, avg];
+  if (mode === "GCSE") return [`${label}: ${avg.toFixed(2)}`, avg];
+  return [`${label}: ${avg.toFixed(2)}%`, avg];
+}
+
+// ─────────────────────────────────────────────
+//  APP STATE
+// ─────────────────────────────────────────────
+const state = {
+  system: "Standard",
+  gradingSys: "Percentile",
+  calcType: "Subject",
+  gradeLevel: "11",
+  coreChoice: "Biology",
+  electChoice: "Technology",
+  schoolLevel: "",
+  entries: [],       // {el: HTMLInputElement} or similar
+  subjectsData: [],  // for Pisay individual
+  generated: false
+};
+
+// ─────────────────────────────────────────────
+//  MODAL SYSTEM
+// ─────────────────────────────────────────────
+function showModal(contentEl, extraClass) {
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'active-modal-overlay';
+  const win = document.createElement('div');
+  win.className = 'modal-window' + (extraClass ? ' ' + extraClass : '');
+  win.appendChild(contentEl);
+  overlay.appendChild(win);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+}
+function closeModal() {
+  const m = document.getElementById('active-modal-overlay');
+  if (m) m.remove();
+}
+
+function alertMsg(msg) {
+  const d = document.createElement('div');
+  d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:24px 32px;z-index:9999;max-width:400px;text-align:center;color:var(--fg-primary);font-size:13px;';
+  d.innerHTML=`<div style="margin-bottom:16px;">${msg}</div><button class="btn btn-primary" onclick="this.parentElement.remove()">OK</button>`;
+  document.body.appendChild(d);
+}
+
+function confirmMsg(msg, onYes) {
+  const d = document.createElement('div');
+  d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:24px 32px;z-index:9999;max-width:400px;text-align:center;color:var(--fg-primary);font-size:13px;';
+  d.innerHTML=`<div style="margin-bottom:16px;">${msg}</div><div style="display:flex;gap:8px;justify-content:center;"><button class="btn btn-primary" id="conf-yes">Yes</button><button class="btn btn-ghost" id="conf-no">No</button></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#conf-yes').onclick = () => { d.remove(); onYes(); };
+  d.querySelector('#conf-no').onclick = () => d.remove();
+}
+
+function promptMsg(msg, onOk) {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:24px 32px;z-index:9999;min-width:320px;text-align:center;color:var(--fg-primary);font-size:13px;';
+  d.innerHTML = `<div style="margin-bottom:12px;">${msg}</div><input type="text" style="background:var(--bg-input);color:var(--fg-primary);border:1px solid var(--border);border-radius:4px;padding:6px 10px;width:100%;font-family:inherit;font-size:13px;outline:none;margin-bottom:12px;" id="prompt-input"><div style="display:flex;gap:8px;justify-content:center;"><button class="btn btn-primary" id="prompt-ok">OK</button><button class="btn btn-ghost" id="prompt-cancel">Cancel</button></div>`;
+  document.body.appendChild(d);
+  const inp = d.querySelector('#prompt-input');
+  inp.focus();
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const v = inp.value.trim(); d.remove(); if (v) onOk(v); } });
+  d.querySelector('#prompt-ok').onclick = () => { const v = inp.value.trim(); d.remove(); if (v) onOk(v); };
+  d.querySelector('#prompt-cancel').onclick = () => d.remove();
+}
+
+// ─────────────────────────────────────────────
+//  ARROW KEY NAVIGATION
+// ─────────────────────────────────────────────
+function bindArrowNav(entriesList, cols=1) {
+  function move(widget, dr, dc) {
+    const idx = entriesList.indexOf(widget);
+    if (idx < 0) return;
+    const row = Math.floor(idx / cols), col = idx % cols;
+    let nr = row + dr, nc = col + dc;
+    if (nc < 0) { nc = cols-1; nr--; }
+    else if (nc >= cols) { nc = 0; nr++; }
+    const ni = nr * cols + nc;
+    if (ni >= 0 && ni < entriesList.length) {
+      entriesList[ni].focus();
+      if (entriesList[ni].select) entriesList[ni].select();
+    }
+  }
+  for (const e of entriesList) {
+    e.addEventListener('keydown', ev => {
+      if (ev.key === 'ArrowUp') { ev.preventDefault(); move(e,-1,0); }
+      else if (ev.key === 'ArrowDown') { ev.preventDefault(); move(e,1,0); }
+      else if (ev.key === 'ArrowLeft') { ev.preventDefault(); move(e,0,-1); }
+      else if (ev.key === 'ArrowRight') { ev.preventDefault(); move(e,0,1); }
+      else if (ev.key === 'Enter') { ev.preventDefault(); move(e,1,0); }
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
+//  ENTRY INPUT HELPER
+// ─────────────────────────────────────────────
+function makeEntry(width='120px', defaultVal='') {
+  const e = document.createElement('input');
+  e.type = 'text';
+  e.className = 'gi-entry';
+  e.style.width = width;
+  if (defaultVal) e.value = defaultVal;
+  return e;
+}
+
+// ─────────────────────────────────────────────
+//  INIT SYSTEM SELECT
+// ─────────────────────────────────────────────
+function initSystemSelect() {
+  const sel = document.getElementById('sys-select');
+  sel.innerHTML = '';
+  for (const s of ALL_SYSTEMS) {
+    const o = document.createElement('option');
+    o.value = s;                                      // keep flagged key as value
+    if (s === 'Pisay') o.textContent = t('pisay');
+    else if (s === 'DepEd') o.textContent = t('deped');
+    else if (s === 'Standard') o.textContent = t('standard');
+    else if (s === 'Others') o.textContent = t('others');
+    else o.textContent = translateCountryName(s);     // now correctly translates
+    sel.appendChild(o);
+  }
+  sel.value = "Standard";
+}
+
+function setTypeOptions(options) {
+  const sel = document.getElementById('type-select');
+  const cur = sel.value;
+  sel.innerHTML = '';
+  for (const o of options) {
+    const opt = document.createElement('option');
+    opt.value = o;
+    // Translate option text
+    if (o === 'Subject') opt.textContent = t('subject');
+    else if (o === 'Overall') opt.textContent = t('overall');
+    else if (o === 'Desired Grade') opt.textContent = t('desired_grade');
+    else if (o === 'Individual Subject & Quarter GWA') opt.textContent = t('individual_subject');
+    else opt.textContent = o;
+    sel.appendChild(opt);
+  }
+  if (options.includes(cur)) sel.value = cur;
+  else sel.value = options[0];
+  state.calcType = sel.value;
+}
+
+// ─────────────────────────────────────────────
+//  SYSTEM CHANGE HANDLERS
+// ─────────────────────────────────────────────
+function onSystemChange() {
+  const sys = document.getElementById('sys-select').value;
+  state.system = sys;
+
+  const grSel = document.getElementById('grading-select');
+  const slRow = document.getElementById('school-level-row');
+  const slSel = document.getElementById('school-level-select');
+  const glRow = document.getElementById('grade-level-row');
+  const elRow = document.getElementById('elect-row');
+  const coRow = document.getElementById('core-row');
+  const cInfo = document.getElementById('country-info-lbl');
+
+  if (isCountrySystem(sys)) {
+    const levels = COUNTRY_SYSTEMS[sys].levels || [];
+
+    // ←←← RESTORE SCHOOL LEVEL DROPDOWN
+    slSel.innerHTML = '';
+    for (const lv of levels) {
+      const o = document.createElement('option');
+      o.value = lv;
+      o.textContent = translateSchoolLevel(lv);   // Translated name
+      slSel.appendChild(o);
+    }
+
+    if (levels.length > 0) {
+      slSel.value = levels[0];
+      state.schoolLevel = levels[0];
+    }
+
+    slRow.style.display = 'flex';           // ← This makes it visible again
+    grSel.disabled = true;
+    updateGradingForCountry();
+    glRow.style.display = 'none';
+    elRow.style.display = 'none';
+    coRow.style.display = 'none';
+    setTypeOptions(["Subject", "Overall", "Desired Grade"]);
+    updateCountryInfo();
+
+  } else if (sys === "Pisay") {
+    slRow.style.display = 'none';
+    cInfo.style.display = 'none';
+    grSel.value = 'GWA';
+    grSel.disabled = true;
+    state.gradingSys = 'GWA';
+    setTypeOptions(["Subject", "Overall", "Individual Subject & Quarter GWA", "Desired Grade"]);
+    glRow.style.display = 'flex';
+    updateGradeLevel();
+
+  } else if (sys === "DepEd") {
+    slRow.style.display = 'none';
+    cInfo.style.display = 'none';
+    grSel.value = 'Percentile';
+    grSel.disabled = true;
+    state.gradingSys = 'Percentile';
+    setTypeOptions(["Subject", "Overall", "Desired Grade"]);
+    glRow.style.display = 'none';
+    elRow.style.display = 'none';
+    coRow.style.display = 'none';
+
+  } else {
+    slRow.style.display = 'none';
+    cInfo.style.display = 'none';
+    grSel.disabled = false;
+    setTypeOptions(["Subject", "Overall", "Desired Grade"]);
+    glRow.style.display = 'none';
+    elRow.style.display = 'none';
+    coRow.style.display = 'none';
+  }
+
+  refreshRightPanel();
+  updateNumLabel();
+}
+
+function updateGradingForCountry() {
+  const sys = state.system;
+  const sl = document.getElementById('school-level-select').value;
+  if (!sl || sl==='—') return;
+  const info = getCountryInfo(sys, sl);
+  if (!info) return;
+  const mode = info.grading_mode;
+  const gSel = document.getElementById('grading-select');
+  if (mode === "GPA_4" || mode === "GPA_4_5") gSel.value = 'GWA';
+  else if (mode === "GCSE") gSel.value = 'Percentile';
+  else gSel.value = 'Percentile';
+  state.gradingSys = gSel.value;
+}
+
+function updateCountryInfo() {
+  const sys = state.system;
+  const sl = state.schoolLevel || document.getElementById('school-level-select').value;
+  const cInfo = document.getElementById('country-info-lbl');
+  if (!isCountrySystem(sys) || !sl || sl==='—') { cInfo.style.display='none'; return; }
+  const info = getCountryInfo(sys, sl);
+  if (info) {
+    const hint = LETTER_HINTS[info.scale] || info.description || '';
+    cInfo.textContent = hint ? 'ℹ ' + hint : '';
+    cInfo.style.display = 'block';
+  } else { cInfo.style.display='none'; }
+}
+
+function onGradingChange() {
+  state.gradingSys = document.getElementById('grading-select').value;
+  updateTypeOptions();
+  updateNumLabel();
+}
+
+function onTypeChange() {
+  state.calcType = document.getElementById('type-select').value;
+  updateNumLabel();
+  const sys = state.system;
+  const typ = state.calcType;
+  const glRow = document.getElementById('grade-level-row');
+  const elRow = document.getElementById('elect-row');
+  const coRow = document.getElementById('core-row');
+  if (sys === "Pisay" && (typ === "Subject" || typ === "Individual Subject & Quarter GWA")) {
+    glRow.style.display = 'flex';
+    updateGradeLevel();
+  } else if (!isCountrySystem(sys)) {
+    glRow.style.display = 'none';
+    elRow.style.display = 'none';
+    coRow.style.display = 'none';
+  }
+}
+
+function onGradeLevelChange() {
+  state.gradeLevel = document.getElementById('grade-level-select').value;
+  updateGradeLevel();
+  updateNumLabel();
+}
+
+function updateGradeLevel() {
+  const gl = document.getElementById('grade-level-select').value;
+  state.gradeLevel = gl;
+  const elRow = document.getElementById('elect-row');
+  const elSel = document.getElementById('elect-select');
+  const coRow = document.getElementById('core-row');
+  const elecs = PISAY_DATA.electives[gl];
+  if (elecs) {
+    elSel.innerHTML = '';
+    for (const e of elecs) { const o=document.createElement('option'); o.value=e; o.textContent=e; elSel.appendChild(o); }
+    state.electChoice = elecs[0];
+    elRow.style.display = 'flex';
+  } else { elRow.style.display='none'; }
+  coRow.style.display = parseInt(gl) >= 11 ? 'flex' : 'none';
+}
+
+function updateTypeOptions() {
+  const sys = state.system;
+  const gr = state.gradingSys;
+  if (isCountrySystem(sys)) {
+    setTypeOptions(["Subject","Overall","Desired Grade"]);
+  } else if (gr === "Percentile") {
+    if (sys === "Pisay") setTypeOptions(["Subject","Overall","Individual Subject & Quarter GWA"]);
+    else setTypeOptions(["Subject","Overall"]);
+  } else {
+    if (sys === "Pisay") setTypeOptions(["Subject","Overall","Individual Subject & Quarter GWA","Desired Grade"]);
+    else setTypeOptions(["Subject","Overall","Desired Grade"]);
+  }
+}
+
+function updateNumLabel() {
+  const typ = state.calcType;
+  const sys = state.system;
+  const numLbl = document.getElementById('num-label');
+  if (typ === "Subject" || typ === "Individual Subject & Quarter GWA") numLbl.textContent = t('subjects');
+  else if (typ === "Overall") numLbl.textContent = t('periods');
+  else numLbl.textContent = "(unused)";
+  if (sys === "Pisay" && (typ === "Subject" || typ === "Individual Subject & Quarter GWA")) {
+    const subs = PISAY_DATA[state.gradeLevel] || [];
+    document.getElementById('num-entry').value = subs.length;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  RIGHT PANEL
+// ─────────────────────────────────────────────
+function refreshRightPanel() {
+  const rp = document.getElementById('right-panel');
+  rp.innerHTML = '';
+
+  const sys = state.system;
+  const sl = state.schoolLevel || document.getElementById('school-level-select')?.value;
+
+  if (isCountrySystem(sys) && sl) {
+    const info = getCountryInfo(sys, sl);
+    if (info) {
+      const mode = info.grading_mode;
+      const grades = info.grades || [];
+
+      const hdr = document.createElement('div');
+      hdr.className = 'panel-title';
+      hdr.textContent = `Grade Scale — ${translateSchoolLevel(sl)}`;
+      rp.appendChild(hdr);
+
+      const tbl = document.createElement('table');
+      tbl.className = 'scale-table';
+
+      let hdrs = ["Grade", "Range (%)", "Notes"];
+      if (mode === "GPA_4" || mode === "GPA_4_5") hdrs = ["Grade", "GPA", ""];
+      else if (mode === "GCSE") hdrs = ["Band", "Score", "Equiv"];
+
+      const thead = document.createElement('thead');
+      const hrow = document.createElement('tr');
+      hdrs.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        hrow.appendChild(th);
+      });
+      thead.appendChild(hrow);
+      tbl.appendChild(thead);
+
+      // Build rows
+      const tbody = document.createElement('tbody');
+      for (const g of grades) {
+        const tr = document.createElement('tr');
+        const lo = g[1], hi = g[2] || g[1];
+        const range = (mode === "GPA_4" || mode === "GPA_4_5") ? lo : (lo === hi ? lo : `${lo}–${hi}`);
+
+        [g[0], range, g[3] || ""].forEach((txt, i) => {
+          const td = document.createElement('td');
+          td.textContent = txt;
+          if (i === 1) td.className = 'accent';
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+      tbl.appendChild(tbody);
+      rp.appendChild(tbl);
+
+      // Hint
+      const hint = getInputHint(info.scale) || LETTER_HINTS[info.scale] || '';
+      if (hint) {
+        const hintDiv = document.createElement('div');
+        hintDiv.style.cssText = 'color:var(--info);font-size:10px;padding:8px 12px;border-top:1px solid var(--border);';
+        hintDiv.textContent = 'Input: ' + hint;
+        rp.appendChild(hintDiv);
+      }
+
+      const desc = document.createElement('div');
+      desc.style.cssText = 'color:var(--fg-muted);font-size:10px;padding:6px 12px;';
+      desc.textContent = info.description || '';
+      rp.appendChild(desc);
+      return;
+    }
+  }
+  const hdr = document.createElement('div');
+  hdr.className = 'panel-title';
+  hdr.textContent = t('gwa_equivalency');
+  rp.appendChild(hdr);
+  const tbl = document.createElement('table');
+  tbl.className = 'scale-table';
+  const thead = document.createElement('thead');
+  const hrow = document.createElement('tr');
+  for (const h of [t('range'), t('gwa')]) { const th=document.createElement('th'); th.textContent=h; hrow.appendChild(th); }
+  thead.appendChild(hrow); tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  for (const [rng,gwa] of GWA_TABLE) {
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td'); td1.textContent = rng;
+    const td2 = document.createElement('td'); td2.textContent = gwa; td2.className='accent';
+    tr.append(td1,td2); tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody); rp.appendChild(tbl);
+}
+
+// ─────────────────────────────────────────────
+//  GENERATE
+// ─────────────────────────────────────────────
+function clearInputs() {
+  document.getElementById('grade-input-content').innerHTML = '';
+  state.entries = [];
+  state.subjectsData = [];
+  setResult("Enter grades then click Calculate", "var(--fg-muted)");
+  document.getElementById('equiv-label').textContent = '';
+}
+
+function handleClearAll() {
+  state.generated = false;
+  clearInputs();
+  document.getElementById('add-subj-btn').style.display='none';
+  document.getElementById('rm-subj-btn').style.display='none';
+}
+
+function setResult(text, color) {
+  const lbl = document.getElementById('result-label');
+  lbl.textContent = text;
+  lbl.style.color = color || 'var(--fg-muted)';
+}
+
+function handleGenerate() {
+  clearInputs();
+  state.generated = true;
+
+  const sys = state.system;
+  const gr = state.gradingSys;
+  const typ = document.getElementById('type-select').value;
+  state.calcType = typ;
+
+  let sl = '';
+  if (isCountrySystem(sys)) {
+    sl = document.getElementById('school-level-select').value || state.schoolLevel;
+    if (!sl && COUNTRY_SYSTEMS[sys] && COUNTRY_SYSTEMS[sys].levels) {
+      sl = COUNTRY_SYSTEMS[sys].levels[0];
+    }
+  }
+  state.schoolLevel = sl;
+
+  state.gradeLevel = document.getElementById('grade-level-select').value;
+  state.coreChoice = document.getElementById('core-select').value;
+  state.electChoice = document.getElementById('elect-select').value || state.electChoice;
+
+  if (typ === "Desired Grade") {
+    document.getElementById('add-subj-btn').style.display = 'none';
+    document.getElementById('rm-subj-btn').style.display = 'none';
+    if (isCountrySystem(sys)) buildDesiredGradeCountryInputs();
+    else buildDesiredGradeInputs();
+    return;
+  }
+
+  if (sys === "Pisay" && typ === "Individual Subject & Quarter GWA") {
+    document.getElementById('add-subj-btn').style.display = 'inline-block';
+    document.getElementById('rm-subj-btn').style.display = 'inline-block';
+    refreshPisayIndividualList();
+    return;
+  }
+
+  document.getElementById('add-subj-btn').style.display = 'none';
+  document.getElementById('rm-subj-btn').style.display = 'none';
+
+  if (isCountrySystem(sys)) {
+    generateCountryInputs(sys, sl, typ);
+  } else {
+    generateOriginalInputs(sys, gr, typ);
+  }
+}
+
+function generateCountryInputs(sys, sl, typ) {
+  if (!sl || sl === '—') {
+    showInfo("Select a School Level first.");
+    return;
+  }
+
+  const info = getCountryInfo(sys, sl);
+  if (!info) {
+    showInfo("Unknown system/level.");
+    return;
+  }
+
+  const mode = info.grading_mode;
+  const scale = info.scale;
+  const hint = LETTER_HINTS[scale] || '';
+  const n = Math.max(parseInt(document.getElementById('num-entry').value) || 1, 1);
+
+  const f = document.getElementById('grade-input-content');
+  state.entries = [];
+
+  const hdr = document.createElement('div');
+  hdr.className = 'gi-header-row';
+  hdr.style.gridTemplateColumns = typ === "Subject" ? '3fr 2fr 1fr' : '3fr 2fr';
+  hdr.innerHTML = typ === "Subject" 
+    ? `<span>${t('subject_name')}</span><span style="text-align:center">${ui('grade')} [${hint}]</span><span style="text-align:center">${t('converted')}</span>`
+    : `<span>${t('period_quarter')}</span><span style="text-align:center">${ui('grade')} [${hint}]</span>`;
+  f.appendChild(hdr);
+
+  // Description banner
+  if (info.description) {
+    const d2 = document.createElement('div');
+    d2.className = 'desc-banner';
+    d2.textContent = info.description;
+    f.appendChild(d2);
+  }
+
+  const nav = [];
+
+  for (let i = 0; i < n; i++) {
+    const row = document.createElement('div');
+    row.className = 'gi-data-row';
+    row.style.gridTemplateColumns = typ === "Subject" ? '3fr 2fr 1fr' : '3fr 2fr';
+
+    let col1;
+    if (typ === "Subject") {
+      col1 = makeEntry('160px', `Subject ${i+1}`);
+    } else {
+      col1 = document.createElement('span');
+      col1.style.cssText = 'color:var(--fg-primary);font-size:13px;';
+      col1.textContent = `Period ${i+1}:`;
+    }
+
+    const e = makeEntry('140px');
+
+    if (typ === "Subject") {
+      const conv = document.createElement('span');
+      conv.className = 'gi-conv';
+      conv.textContent = '—';
+
+      function makeTrace(entry, label, sc, mo) {
+        return function() {
+          const raw = entry.value.trim();
+          if (!raw) {
+            label.textContent = '—';
+            label.style.color = 'var(--fg-muted)';
+            return;
+          }
+          try {
+            const [numeric, letterUsed] = parseCountryEntry(raw, sc, mo);
+            if (numeric !== null) {
+              label.textContent = letterUsed ? '= ' + formatNumericForMode(numeric, mo) : '✓';
+              label.style.color = 'var(--success)';
+            } else {
+              label.textContent = '?';
+              label.style.color = 'var(--warning)';
+            }
+          } catch (err) {
+            label.textContent = '✗';
+            label.style.color = 'var(--danger)';
+          }
+        };
+      }
+
+      const trace = makeTrace(e, conv, scale, mode);
+      e.addEventListener('keyup', trace);
+      e.addEventListener('blur', trace);
+
+      row.append(col1, e, conv);
+      state.entries.push(e);
+      nav.push(col1, e);
+    } else {
+      row.append(col1, e);
+      state.entries.push(e);
+      nav.push(e);
+    }
+
+    f.appendChild(row);
+  }
+
+  bindArrowNav(nav, typ === "Subject" ? 2 : 1);
+}
+
+function generateOriginalInputs(sys, gr, typ) {
+  const f = document.getElementById('grade-input-content');
+  f.innerHTML = '';
+  state.entries = [];
+
+  const n = Math.max(parseInt(document.getElementById('num-entry').value) || 1, 1);
+
+  // Pisay special case (with units)
+  if (sys === "Pisay" && typ === "Subject") {
+    const gl = state.gradeLevel;
+    const subjects = PISAY_DATA[gl] || [];
+    const hdr = document.createElement('div');
+    hdr.className = 'gi-header-row';
+    hdr.style.gridTemplateColumns = '3fr 2fr 1fr';
+    hdr.innerHTML = `<span style="text-align:left">${ui('subject')}</span><span style="text-align:center">${ui('grade')} (1.00–5.00)</span><span style="text-align:center">${ui('units')}</span>`;
+    f.appendChild(hdr);
+
+    const nav = [];
+    for (const s of subjects) {
+      let name = s.name;
+      if (name === "Electives") name = `${state.electChoice} Elective`;
+      if (name === "Core Science" || name === "Biology") name = `${state.coreChoice} Core`;
+
+      const row = document.createElement('div');
+      row.className = 'gi-data-row';
+      row.style.gridTemplateColumns = '3fr 2fr 1fr';
+
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'color:var(--fg-primary);font-size:13px;display:flex;align-items:center;justify-content:flex-start;padding:0 8px;';
+      lbl.textContent = name;
+
+      const g = makeEntry('140px');
+      const u = makeEntry('60px', String(s.units));
+
+      row.append(lbl, g, u);
+      f.appendChild(row);
+
+      state.entries.push(g, u);
+      nav.push(g, u);
+    }
+    bindArrowNav(nav, 2);
+    return;
+  }
+
+  // Overall GWA mode - NO UNITS for Standard/Others
+  if (typ === "Overall" && gr === "GWA") {
+    const hdr = document.createElement('div');
+    hdr.className = 'gi-header-row';
+    hdr.style.gridTemplateColumns = '3fr 2fr';
+    hdr.innerHTML = `<span>${t('subject')}</span><span style="text-align:center">${t('gwa')} (1.00–5.00)</span>`;
+    f.appendChild(hdr);
+
+    const labels = [
+      "Previous Quarter Grade:",
+      "Weight of Previous Grade:",
+      `${ordinal(n)} Quarter Grade:`,
+      "Weight of Current Grade:"
+    ];
+    const nav = [];
+    for (let idx = 0; idx < labels.length; idx++) {
+      const row = document.createElement('div');
+      row.className = 'gi-data-row';
+      row.style.gridTemplateColumns = '3fr 2fr';
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'color:var(--fg-primary);font-size:13px;';
+      lbl.textContent = labels[idx];
+      const e = makeEntry('160px');
+      row.append(lbl, e);
+      f.appendChild(row);
+      state.entries.push(e);
+      nav.push(e);
+    }
+    bindArrowNav(nav, 1);
+    return;
+  }
+
+  // Overall Percentile mode - NO UNITS
+  if (typ === "Overall" && gr === "Percentile") {
+    const hdr = document.createElement('div');
+    hdr.className = 'gi-header-row';
+    hdr.style.gridTemplateColumns = '3fr 2fr';
+    hdr.innerHTML = `<span>${t('quarter')}</span><span style="text-align:center">${ui('grade')} (%)</span>`;
+    f.appendChild(hdr);
+
+    const nav = [];
+    for (let i = 0; i < n; i++) {
+      const row = document.createElement('div');
+      row.className = 'gi-data-row';
+      row.style.gridTemplateColumns = '3fr 2fr';
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'color:var(--fg-primary);font-size:13px;';
+      lbl.textContent = `Quarter ${i+1} Grade (%):`;
+      const e = makeEntry('160px');
+      row.append(lbl, e);
+      f.appendChild(row);
+      state.entries.push(e);
+      nav.push(e);
+    }
+    bindArrowNav(nav, 1);
+    return;
+  }
+
+  // Subject mode with editable subject names (for Standard, DepEd, Others)
+  // Only Pisay Subject mode and GWA systems use units
+  const gradeLabel = gr === "GWA" ? `${ui('grade')} (1.00–5.00)` : `${ui('grade')} (%)`;
+  
+  if (gr === "GWA" && sys !== "DepEd") {
+    // GWA Subject mode WITH units (Standard, Others)
+    const hdr = document.createElement('div');
+    hdr.className = 'gi-header-row';
+    hdr.style.gridTemplateColumns = '3fr 2fr 1fr';
+    hdr.innerHTML = `<span style="text-align:left">${t('subject_name')}</span><span style="text-align:center">${gradeLabel}</span><span style="text-align:center">${ui('units')}</span>`;
+    f.appendChild(hdr);
+
+    const nav = [];
+    for (let i = 0; i < n; i++) {
+      const row = document.createElement('div');
+      row.className = 'gi-data-row';
+      row.style.gridTemplateColumns = '3fr 2fr 1fr';
+
+      const subjectNameInput = makeEntry('160px', `Subject ${i + 1}`);
+      const gradeInput = makeEntry('160px');
+      const unitInput = makeEntry('80px', '1');
+
+      row.append(subjectNameInput, gradeInput, unitInput);
+      f.appendChild(row);
+
+      state.entries.push(gradeInput, unitInput);  // ONLY push grade and unit inputs
+      nav.push(subjectNameInput, gradeInput, unitInput);
+    }
+    bindArrowNav(nav, 3);
+  } else {
+    // Percentile Subject mode - NO UNITS
+    const hdr = document.createElement('div');
+    hdr.className = 'gi-header-row';
+    hdr.style.gridTemplateColumns = '3fr 2fr';
+    hdr.innerHTML = `<span style="text-align:left">${t('subject_name')}</span><span style="text-align:center">${gradeLabel}</span>`;
+    f.appendChild(hdr);
+
+    const nav = [];
+    for (let i = 0; i < n; i++) {
+      const row = document.createElement('div');
+      row.className = 'gi-data-row';
+      row.style.gridTemplateColumns = '3fr 2fr';
+
+      const subjectNameInput = makeEntry('160px', `Subject ${i + 1}`);
+      const gradeInput = makeEntry('160px');
+
+      row.append(subjectNameInput, gradeInput);
+      f.appendChild(row);
+
+      state.entries.push(gradeInput);  // ONLY push grade input
+      nav.push(subjectNameInput, gradeInput);
+    }
+    bindArrowNav(nav, 2);
+  }
+}
+
+function generateCountryInputs(sys, sl, typ) {
+  if (!sl || sl === '—') {
+    showInfo("Select a School Level first.");
+    return;
+  }
+
+  const info = getCountryInfo(sys, sl);
+  if (!info) {
+    showInfo("Unknown system/level.");
+    return;
+  }
+
+  const mode = info.grading_mode;
+  const scale = info.scale;
+  const hint = LETTER_HINTS[scale] || '';
+  const n = Math.max(parseInt(document.getElementById('num-entry').value) || 1, 1);
+
+  const f = document.getElementById('grade-input-content');
+  state.entries = [];
+
+  const hdr = document.createElement('div');
+  hdr.className = 'gi-header-row';
+  hdr.style.gridTemplateColumns = typ === "Subject" ? '3fr 2fr 1fr' : '3fr 2fr';
+  hdr.innerHTML = typ === "Subject" 
+    ? `<span>${t('subject_name')}</span><span style="text-align:center">${ui('grade')} [${hint}]</span><span style="text-align:center">${t('converted')}</span>`
+    : `<span>${t('period_quarter')}</span><span style="text-align:center">${ui('grade')} [${hint}]</span>`;
+  f.appendChild(hdr);
+
+  // Description banner
+  if (info.description) {
+    const d2 = document.createElement('div');
+    d2.className = 'desc-banner';
+    d2.textContent = info.description;
+    f.appendChild(d2);
+  }
+
+  const nav = [];
+
+  for (let i = 0; i < n; i++) {
+    const row = document.createElement('div');
+    row.className = 'gi-data-row';
+    row.style.gridTemplateColumns = typ === "Subject" ? '3fr 2fr 1fr' : '3fr 2fr';
+
+    let col1;
+    if (typ === "Subject") {
+      col1 = makeEntry('160px', `Subject ${i+1}`);
+    } else {
+      col1 = document.createElement('span');
+      col1.style.cssText = 'color:var(--fg-primary);font-size:13px;';
+      col1.textContent = `Period ${i+1}:`;
+    }
+
+    const e = makeEntry('140px');
+
+    if (typ === "Subject") {
+      const conv = document.createElement('span');
+      conv.className = 'gi-conv';
+      conv.textContent = '—';
+
+      function makeTrace(entry, label, sc, mo) {
+        return function() {
+          const raw = entry.value.trim();
+          if (!raw) {
+            label.textContent = '—';
+            label.style.color = 'var(--fg-muted)';
+            return;
+          }
+          try {
+            const [numeric, letterUsed] = parseCountryEntry(raw, sc, mo);
+            if (numeric !== null) {
+              label.textContent = letterUsed ? '= ' + formatNumericForMode(numeric, mo) : '✓';
+              label.style.color = 'var(--success)';
+            } else {
+              label.textContent = '?';
+              label.style.color = 'var(--warning)';
+            }
+          } catch (err) {
+            label.textContent = '✗';
+            label.style.color = 'var(--danger)';
+          }
+        };
+      }
+
+      const trace = makeTrace(e, conv, scale, mode);
+      e.addEventListener('keyup', trace);
+      e.addEventListener('blur', trace);
+
+      row.append(col1, e, conv);
+      state.entries.push(e);
+      nav.push(col1, e);
+    } else {
+      row.append(col1, e);
+      state.entries.push(e);
+      nav.push(e);
+    }
+
+    f.appendChild(row);
+  }
+
+  bindArrowNav(nav, typ === "Subject" ? 2 : 1);
+}
+
+function showInfo(msg) {
+  const f = document.getElementById('grade-input-content');
+  const d=document.createElement('div');
+  d.style.cssText='color:var(--warning);padding:20px 12px;font-size:13px;';
+  d.textContent=msg;
+  f.appendChild(d);
+}
+
+// ─────────────────────────────────────────────
+//  DESIRED GRADE INPUTS
+// ─────────────────────────────────────────────
+function buildDesiredGradeInputs() {
+  const f=document.getElementById('grade-input-content');
+  const gr=state.gradingSys;
+  const isGwa=(gr==="GWA");
+  state.entries=[];
+  const banner=document.createElement('div');
+  banner.className='info-banner';
+  banner.textContent=isGwa?"GWA mode — enter GWA values (1.00–5.00)":"Percentile mode — enter % values (0–100)";
+  f.appendChild(banner);
+  const nav=[];
+  function mk(row, labelTxt, placeholder) {
+    const div=document.createElement('div');
+    div.className='gi-data-row';
+    div.style.gridTemplateColumns='3fr 2fr';
+    const lbl=document.createElement('span');
+    lbl.style.cssText='color:var(--fg-secondary);font-size:13px;';
+    lbl.textContent=labelTxt;
+    const e=makeEntry('160px'); if(placeholder) e.placeholder=placeholder;
+    div.append(lbl,e); f.appendChild(div);
+    state.entries.push(e); nav.push(e); return e;
+  }
+  state._dg_current=mk(0,"Current Grade"+(isGwa?" (GWA 1-5):":" (%):"),"");
+  state._dg_desired=mk(1,"Desired Final Grade"+(isGwa?" (GWA 1-5):":" (%):"),"");
+  state._dg_remain=mk(2,"Remaining Assessment Weight (0–1 or %):", "e.g. 0.4");
+  bindArrowNav(nav,1);
+  const note=document.createElement('div');
+  note.style.cssText='color:var(--fg-muted);font-size:10px;padding:0 8px 8px;background:var(--bg-surface);';
+  note.textContent=isGwa?"GWA: lower is better (1.00 = best). Remaining weight is fraction of overall grade (e.g. 0.4 = 40%).":"Remaining weight is fraction of overall grade (e.g. 0.4 = 40% remaining).";
+  f.appendChild(note);
+}
+
+function buildDesiredGradeCountryInputs() {
+  const f=document.getElementById('grade-input-content');
+  const sys=state.system, sl=state.schoolLevel;
+  const info=getCountryInfo(sys,sl);
+  if (!info) { showInfo("Select a school level first."); return; }
+  const mode=info.grading_mode, scale=info.scale, passing=info.passing;
+  const hint=LETTER_HINTS[scale]||'';
+  state.entries=[];
+  const banner=document.createElement('div');
+  banner.className='info-banner';
+  banner.textContent=`${sys} — ${sl}  |  Passing: ${passing}  |  ${hint}`;
+  f.appendChild(banner);
+  const desc=document.createElement('div');
+  desc.className='info-banner';
+  desc.style.color='var(--fg-muted)';
+  desc.textContent=info.description||'';
+  f.appendChild(desc);
+  state._country_dg_mode=mode; state._country_dg_scale=scale; state._country_dg_passing=passing;
+  const nav=[];
+  function mk(labelTxt) {
+    const div=document.createElement('div');
+    div.className='gi-data-row';
+    div.style.gridTemplateColumns='3fr 2fr';
+    const lbl=document.createElement('span');
+    lbl.style.cssText='color:var(--fg-secondary);font-size:13px;';
+    lbl.textContent=labelTxt;
+    const e=makeEntry('160px');
+    div.append(lbl,e); f.appendChild(div);
+    state.entries.push(e); nav.push(e); return e;
+  }
+  state._dg_current=mk(`Current Grade (${hint}):`);
+  state._dg_desired=mk(`Desired Final Grade (${hint}):`);
+  state._dg_remain=mk("Remaining Assessment Weight (0.01–1.0 or %):");
+  bindArrowNav(nav,1);
+  const isGpa=mode==="GPA_4"||mode==="GPA_4_5";
+  const isGcse=mode==="GCSE";
+  const note=document.createElement('div');
+  note.className='info-banner'; note.style.marginTop='16px';
+  if(isGpa) note.textContent="GPA: higher is better (e.g. A=4.0). Enter letter or numeric.\nRemaining weight is fraction of overall grade (e.g. 0.4 = 40%).";
+  else if(isGcse) note.textContent="GCSE: 9 is highest, U is ungraded (0). Passing = 4.\nRemaining weight is fraction of overall mark (e.g. 0.4 = 40%).";
+  else note.textContent=`Percentage: higher is better. Passing = ${passing}%.\nRemaining weight is fraction of overall grade (e.g. 0.4 = 40%).\nYou may also enter letter grades (e.g. A, B+) instead of numbers.`;
+  f.appendChild(note);
+}
+
+// ─────────────────────────────────────────────
+//  PISAY INDIVIDUAL SUBJECT LIST
+// ─────────────────────────────────────────────
+function refreshPisayIndividualList() {
+  const f=document.getElementById('grade-input-content');
+  f.innerHTML='';
+  const gl=state.gradeLevel;
+  const subjects=PISAY_DATA[gl]||[];
+  if (!subjects.length) { showInfo("No subjects found for this grade level."); return; }
+  const hdr=document.createElement('div');
+  hdr.className='gi-header-row';
+  hdr.style.gridTemplateColumns='3fr 1fr 1fr 1fr 2fr';
+  hdr.innerHTML=`<span style="text-align:left">${ui('subject')}</span><span style="text-align:center">${t('gwa')} (1–5)</span><span style="text-align:center">% ${ui('value')}</span><span style="text-align:center">${ui('units')}</span><span style="text-align:center">${ui('status')}</span>`;
+  f.appendChild(hdr);
+  for (const s of subjects) {
+    let dn=s.name;
+    if(dn==="Electives") dn=`${state.electChoice} Elective`;
+    if(dn==="Core Science"||dn==="Biology") dn=`${state.coreChoice} Core`;
+    const existing=state.subjectsData.find(sd=>sd.name===dn);
+    const row=document.createElement('div');
+    row.className='gi-data-row';
+    row.style.gridTemplateColumns='3fr 1fr 1fr 1fr 2fr';
+    const btn=document.createElement('button');
+    btn.className='pisay-btn'+(existing?' entered':'');
+    btn.textContent=dn;
+    btn.onclick=()=>openSubjectDialog(dn,s.units);
+    row.appendChild(btn);
+    if (existing) {
+      const gwaVal=existing.gwa;
+      const gwaNum=convertToGWA(gwaVal);
+      const pctTxt=gwaVal.toFixed(2)+'%';
+      const [,colorKey]=gwaStatus(gwaVal,state.system,"Percentile");
+      const [,,fgC]=statusColors(colorKey);
+      const [statusTxt]=gwaStatus(gwaVal,state.system,"Percentile");
+      const gSpan=document.createElement('span');
+      gSpan.style.cssText=`text-align:center;color:${fgC};font-weight:bold;`;
+      gSpan.textContent=gwaNum;
+      const pSpan=document.createElement('span');
+      pSpan.style.cssText='text-align:center;color:var(--fg-secondary);font-size:10px;';
+      pSpan.textContent=pctTxt;
+      const uInp=document.createElement('input');
+      uInp.type='number'; uInp.step='0.1'; uInp.min='0.1';
+      uInp.style.cssText='background:var(--bg-input);color:var(--fg-primary);border:1px solid var(--border);border-radius:4px;padding:2px 4px;width:50px;font-size:12px;text-align:center;outline:none;';
+      uInp.value=existing.units||s.units;
+      uInp.onchange=()=>{ existing.units=parseFloat(uInp.value)||s.units; };
+      const stSpan=document.createElement('span');
+      stSpan.style.cssText=`text-align:center;color:${fgC};font-size:10px;`;
+      stSpan.textContent=statusTxt;
+      row.append(gSpan,pSpan,uInp,stSpan);
+    } else {
+      const spans=['—','—'];
+      for(const t of spans){const sp=document.createElement('span');sp.style.cssText='text-align:center;color:var(--fg-muted);';sp.textContent=t;row.appendChild(sp);}
+      const uSpan=document.createElement('span');
+      uSpan.style.cssText='text-align:center;color:var(--fg-muted);';
+      uSpan.textContent=String(s.units);
+      row.appendChild(uSpan);
+      const stSpan=document.createElement('span');
+      stSpan.style.cssText='text-align:center;color:var(--fg-muted);font-size:10px;';
+      stSpan.textContent='Not entered';
+      row.appendChild(stSpan);
+    }
+    f.appendChild(row);
+  }
+}
+
+function addPisaySubject() { refreshPisayIndividualList(); }
+function rmPisaySubject() {
+  if (state.subjectsData.length) { state.subjectsData.pop(); refreshPisayIndividualList(); }
+}
+
+function openSubjectDialog(displayName, defaultUnits) {
+  showSubjectDialog(displayName, (resultPct) => {
+    const existing=state.subjectsData.find(sd=>sd.name===displayName);
+    if(existing) { existing.gwa=resultPct; }
+    else { state.subjectsData.push({name:displayName,gwa:resultPct,units:defaultUnits}); }
+    refreshPisayIndividualList();
+  });
+}
+
+// ─────────────────────────────────────────────
+//  SUBJECT DIALOG (Pisay)
+// ─────────────────────────────────────────────
+function showSubjectDialog(subjectName, onConfirm) {
+  const win=document.createElement('div');
+  win.style.cssText='display:flex;flex-direction:column;width:100%;';
+
+  const body=document.createElement('div');
+  body.className='modal-body subdialog';
+  body.style.cssText='background:var(--bg-surface);padding:12px;';
+
+  function makeSec(title) {
+    const s=document.createElement('div');
+    s.className='sub-sec';
+    const t=document.createElement('div');
+    t.className='sub-sec-title'; t.textContent=title;
+    s.appendChild(t); body.appendChild(s); return s;
+  }
+  function makeRow(parent, label, inputEl) {
+    const r=document.createElement('div');
+    r.className='sub-row';
+    const l=document.createElement('span');
+    l.className='sub-label'; l.textContent=label;
+    r.append(l,inputEl); parent.appendChild(r); return r;
+  }
+  function makeSEntry(w='80px',def='') {
+    const e=document.createElement('input');
+    e.type='text'; e.className='sub-entry';
+    e.style.width=w; if(def) e.value=def;
+    return e;
+  }
+
+  const allEntries=[];
+
+  // FA
+  const faS=makeSec("Formative Assessments (max 10)");
+  const faCount=document.createElement('input');
+  faCount.type='number'; faCount.min=0; faCount.max=10; faCount.value=0;
+  faCount.className='sub-entry'; faCount.style.width='60px';
+  const faWeight=makeSEntry('60px','0');
+  const faGrades=makeSEntry('220px','');
+  makeRow(faS,"Count (0–10):",faCount);
+  makeRow(faS,"Weight (%):",faWeight);
+  makeRow(faS,"Grades (comma-sep):",faGrades);
+  allEntries.push(faWeight,faGrades);
+
+  // AA
+  const aaS=makeSec("Alternative Assessments (max 7)");
+  const aaCount=document.createElement('input');
+  aaCount.type='number'; aaCount.min=0; aaCount.max=7; aaCount.value=0;
+  aaCount.className='sub-entry'; aaCount.style.width='60px';
+  const aaWeight=makeSEntry('60px','0');
+  const aaGrades=makeSEntry('220px','');
+  makeRow(aaS,"Count (0–7):",aaCount);
+  makeRow(aaS,"Weight (%):",aaWeight);
+  makeRow(aaS,"Grades (comma-sep):",aaGrades);
+  allEntries.push(aaWeight,aaGrades);
+
+  // LT
+  const ltS=makeSec("Long Test (optional)");
+  const ltTake=document.createElement('input'); ltTake.type='checkbox';
+  const ltCB=document.createElement('label'); ltCB.className='cb-row'; ltCB.append(ltTake,"Took Long Test");
+  ltS.appendChild(ltCB);
+  const ltWeight=makeSEntry('60px','0');
+  const ltGrades=makeSEntry('220px','');
+  makeRow(ltS,"Weight (%):",ltWeight);
+  makeRow(ltS,"Grades (comma-sep):",ltGrades);
+  allEntries.push(ltWeight,ltGrades);
+
+  // PR
+  const prS=makeSec("Practical Exam (optional)");
+  const prTake=document.createElement('input'); prTake.type='checkbox';
+  const prCB=document.createElement('label'); prCB.className='cb-row'; prCB.append(prTake,"Took Practical Exam");
+  prS.appendChild(prCB);
+  const prWeight=makeSEntry('60px','0');
+  const prGrades=makeSEntry('220px','');
+  makeRow(prS,"Weight (%):",prWeight);
+  makeRow(prS,"Grades (comma-sep):",prGrades);
+  allEntries.push(prWeight,prGrades);
+
+  // MT
+  const mtS=makeSec("Midterm (optional)");
+  const mtTake=document.createElement('input'); mtTake.type='checkbox';
+  const mtCB=document.createElement('label'); mtCB.className='cb-row'; mtCB.append(mtTake,"Took Midterm");
+  mtS.appendChild(mtCB);
+  const mtWeight=makeSEntry('60px','0');
+  const mtGrades=makeSEntry('220px','');
+  makeRow(mtS,"Weight (%):",mtWeight);
+  makeRow(mtS,"Grades (comma-sep):",mtGrades);
+  allEntries.push(mtWeight,mtGrades);
+
+  // FE
+  const feS=makeSec("Final Exam (optional)");
+  const feTake=document.createElement('input'); feTake.type='checkbox';
+  const feCB=document.createElement('label'); feCB.className='cb-row'; feCB.append(feTake,"Took Final Exam");
+  feS.appendChild(feCB);
+  const feWeight=makeSEntry('60px','0');
+  const feGrade=makeSEntry('80px','0');
+  makeRow(feS,"Weight (%):",feWeight);
+  makeRow(feS,"Score (0–100 %):",feGrade);
+  allEntries.push(feWeight,feGrade);
+
+  // Bonus
+  const bonS=makeSec("Bonus Points (0–5)");
+  const bonus=makeSEntry('60px','0');
+  makeRow(bonS,"Bonus:",bonus);
+  allEntries.push(bonus);
+
+  bindArrowNav(allEntries,1);
+
+  // Result area
+  const resultDiv=document.createElement('div');
+  resultDiv.className='sub-result';
+  resultDiv.style.color='var(--fg-muted)';
+  body.appendChild(resultDiv);
+
+  // Calc button
+  const calcBtn=document.createElement('button');
+  calcBtn.className='btn btn-primary';
+  calcBtn.style.cssText='width:100%;padding:10px;margin-top:8px;';
+  calcBtn.textContent='Calculate Subject GWA';
+
+  let computedPct=null;
+
+  function parseValue(raw, lbl, minV=0, maxV=100) {
+    raw=raw.trim();
+    if(!raw) throw new Error(`Empty value for ${lbl}.`);
+    let v;
+    if(raw.includes('/')) { const [a,b]=raw.split('/'); const n=parseFloat(a),d=parseFloat(b); if(d===0)throw new Error(`Division by zero in '${raw}' for ${lbl}.`); v=(n/d)*100; }
+    else if(raw.endsWith('%')) { v=parseFloat(raw); }
+    else { v=parseFraction(raw); }
+    if(v<minV||v>maxV) throw new Error(`Value ${v.toFixed(2)} out of range [${minV}–${maxV}] for ${lbl}.`);
+    return v;
+  }
+  function parseGrades(w, lbl) {
+    const raw=w.value.trim();
+    if(!raw) return [];
+    return raw.split(',').filter(t=>t.trim()).map(t=>parseValue(t.trim(),lbl));
+  }
+  function parseWeight(w, lbl) { return parseValue(w.value.trim(),lbl,0,100); }
+  function calcSec(grades, weight) {
+    if(!grades.length||weight===0) return 0;
+    return (grades.reduce((a,b)=>a+b,0)/grades.length)*(weight/100);
+  }
+
+  calcBtn.onclick=()=>{
+    try {
+      let tc=0, tw=0;
+      const fan=parseInt(faCount.value)||0;
+      if(fan>0) {
+        const fw=parseWeight(faWeight,"Formative");
+        const fg=parseGrades(faGrades,"Formative");
+        if(fg.length!==fan) throw new Error(`Expected ${fan} Formative grade(s), got ${fg.length}.`);
+        tc+=calcSec(fg,fw); tw+=fw;
+      }
+      const aan=parseInt(aaCount.value)||0;
+      if(aan>0) {
+        const aw=parseWeight(aaWeight,"Alternative");
+        const ag=parseGrades(aaGrades,"Alternative");
+        if(ag.length!==aan) throw new Error(`Expected ${aan} Alternative grade(s), got ${ag.length}.`);
+        tc+=calcSec(ag,aw); tw+=aw;
+      }
+      if(ltTake.checked) {
+        const lw=parseWeight(ltWeight,"Long Test");
+        const lg=parseGrades(ltGrades,"Long Test");
+        if(!lg.length) throw new Error("Enter at least one Long Test grade.");
+        tc+=calcSec(lg,lw); tw+=lw;
+      }
+      if(prTake.checked) {
+        const pw=parseWeight(prWeight,"Practical Exam");
+        const pg=parseGrades(prGrades,"Practical Exam");
+        if(!pg.length) throw new Error("Enter at least one Practical Exam grade.");
+        tc+=calcSec(pg,pw); tw+=pw;
+      }
+      if(mtTake.checked) {
+        const mw=parseWeight(mtWeight,"Midterm");
+        const mg=parseGrades(mtGrades,"Midterm");
+        if(!mg.length) throw new Error("Enter at least one Midterm grade.");
+        tc+=calcSec(mg,mw); tw+=mw;
+      }
+      if(feTake.checked) {
+        const fw2=parseWeight(feWeight,"Final Exam");
+        const fg2=parseValue(feGrade.value.trim(),"Final Exam Score");
+        tc+=fg2*(fw2/100); tw+=fw2;
+      }
+      const bon=Math.min(Math.max(parseFloat(bonus.value)||0,0),5);
+      tc+=bon;
+      if(tw===0) throw new Error("No assessments entered.");
+      const pct=Math.min((tc/tw)*100,100.0);
+      computedPct=pct;
+      const gwaStr=convertToGWA(pct);
+      const [statusTxt,colorKey]=gwaStatus(pct,state.system,"Percentile");
+      const [,,fgC]=statusColors(colorKey);
+      resultDiv.textContent=`GWA: ${gwaStr}  (${pct.toFixed(2)}%)  |  ${statusTxt}`;
+      resultDiv.style.color=fgC;
+      confirmBtn.style.display='block';
+    } catch(e) { alertMsg(e.message); }
+  };
+  body.appendChild(calcBtn);
+
+  const confirmBtn=document.createElement('button');
+  confirmBtn.className='btn btn-success';
+  confirmBtn.style.cssText='width:100%;padding:10px;margin-top:8px;display:none;';
+  confirmBtn.textContent='Save & Close';
+  confirmBtn.onclick=()=>{
+    if(computedPct!==null) { onConfirm(computedPct); closeModal(); }
+  };
+  body.appendChild(confirmBtn);
+
+  const hdrEl=document.createElement('div');
+  hdrEl.className='modal-header';
+  hdrEl.innerHTML=`<span>Subject — ${subjectName}</span><button class="btn btn-ghost btn-sm" onclick="closeModal()">X</button>`;
+  win.append(hdrEl,body);
+  showModal(win,'subdialog');
+}
+
+// ─────────────────────────────────────────────
+//  CALCULATE
+// ─────────────────────────────────────────────
+function handleCalculate() {
+  if (!state.generated) { setResult("Generate inputs first", "var(--warning)"); return; }
+  const sys=state.system;
+  const gr=state.gradingSys;
+  const typ=state.calcType;
+  const sl=state.schoolLevel;
+
+  if (typ==="Desired Grade") {
+    if (isCountrySystem(sys)) calculateDesiredCountry();
+    else calculateDesiredOriginal(sys,gr);
+    return;
+  }
+
+  if (sys==="Pisay" && typ==="Individual Subject & Quarter GWA") {
+    if (!state.subjectsData.length) { setResult("Add at least one subject","var(--warning)"); return; }
+    let totalW=0, totalU=0;
+    for (const sd of state.subjectsData) {
+      const gwaS=convertToGWA(sd.gwa);
+      const gwaF=parseFloat(gwaS.split(' ')[0]);
+      const units=parseFloat(sd.units||1);
+      totalW+=gwaF*units; totalU+=units;
+    }
+    if(!totalU) { setResult("No units found","var(--warning)"); return; }
+    const overall=totalW/totalU;
+    const [statusTxt,colorKey]=gwaStatus(overall,sys,"GWA");
+    const [,,fgC]=statusColors(colorKey);
+    setResult(`Overall GWA: ${overall.toFixed(4)}  ${statusTxt}`,fgC);
+    document.getElementById('equiv-label').textContent=`(${totalU.toFixed(1)} total units)`;
+    return;
+  }
+
+  if (isCountrySystem(sys)) {
+    if (!state.entries.length) { setResult("No entries found","var(--warning)"); return; }
+    try {
+      const info=getCountryInfo(sys,sl);
+      if(!info) throw new Error("Select a school level first.");
+      const mode=info.grading_mode, scale=info.scale;
+      const values=[];
+      for (const e of state.entries) {
+        const raw=e.value.trim();
+        if(!raw) continue;
+        const [numeric]=parseCountryEntry(raw,scale,mode);
+        if(numeric===null) throw new Error(`Invalid value '${raw}'.`);
+        values.push(numeric);
+      }
+      if(!values.length) throw new Error("No grades entered.");
+      const avg=values.reduce((a,b)=>a+b,0)/values.length;
+      const [statusTxt,colorKey]=countryStatus(avg,sys,sl);
+      const [,,fgC]=statusColors(colorKey);
+      const gLbl=countryGradeLabel(avg,sys,sl);
+      const gpaEq=countryGpaEquivalent(avg,sys,sl);
+      let display;
+      if(mode==="GPA_4"||mode==="GPA_4_5") display=`Average: ${avg.toFixed(3)}`;
+      else if(mode==="GCSE") display=`Average: ${avg.toFixed(2)}`;
+      else display=`Average: ${avg.toFixed(2)}%`;
+      if(gLbl) display+=`  [${gLbl}]`;
+      display+=`  ${statusTxt}`;
+      setResult(display,fgC);
+      document.getElementById('equiv-label').textContent=gpaEq?`GPA/Equiv: ${gpaEq}`:'';
+    } catch(e) { setResult(`${e.message}`,"var(--warning)"); document.getElementById('equiv-label').textContent=''; }
+    return;
+  }
+
+  try {
+    const entryVals=state.entries.map(e=>e.value);
+    const [resultStr,resultVal]=computeResult(entryVals,sys,gr,typ);
+    if(gr==="GWA") {
+      const [statusTxt,colorKey]=gwaStatus(resultVal,sys,"GWA");
+      const [,,fgC]=statusColors(colorKey);
+      setResult(`${resultStr}  ${statusTxt}`,fgC);
+      document.getElementById('equiv-label').textContent='';
+    } else {
+      const [statusTxt,colorKey]=gwaStatus(resultVal,sys,"Percentile");
+      const [,,fgC]=statusColors(colorKey);
+      const equiv=convertToGWA(resultVal);
+      setResult(`${resultStr}  ${statusTxt}`,fgC);
+      document.getElementById('equiv-label').textContent=`GWA Equiv: ${equiv}`;
+    }
+  } catch(e) {
+    setResult("Invalid input — check your values","var(--warning)");
+    document.getElementById('equiv-label').textContent='';
+  }
+}
+
+function calculateDesiredOriginal(sys,gr) {
+  try {
+    const isGwa=(gr==="GWA");
+    const curStr=state._dg_current.value.trim();
+    const desStr=state._dg_desired.value.trim();
+    const remStr=(state._dg_remain&&state._dg_remain.value)||'';
+    if(!curStr||!desStr) throw new Error("Enter both current and desired grades.");
+    if(!remStr) throw new Error("Enter remaining assessment weight.");
+    const cur=toNum(curStr,isGwa);
+    const des=toNum(desStr,isGwa);
+    const rem=toNum(remStr);
+    if(cur===null) throw new Error("Invalid current grade.");
+    if(des===null) throw new Error("Invalid desired grade.");
+    if(rem===null||rem<=0||rem>1) throw new Error("Remaining weight must be 0.01–1.00 (or 1%–100%).");
+    if(isGwa) {
+      const needed=(des-cur*(1.0-rem))/rem;
+      if(needed<1.0) { setResult("You have already surpassed your desired GWA!","var(--success)"); }
+      else if(needed>5.0) { setResult("Not achievable — required GWA exceeds 5.00.","var(--danger)"); }
+      else { setResult(`You need GWA ${needed.toFixed(3)} on the remaining assessments.`,"var(--info)"); }
+    } else {
+      const needed=(des-cur*(1.0-rem))/rem;
+      const neededPct=needed*100;
+      if(neededPct<0) { setResult("You have already surpassed your desired grade!","var(--success)"); }
+      else if(neededPct>100) { setResult("Not achievable — required score exceeds 100%.","var(--danger)"); }
+      else { setResult(`You need ${neededPct.toFixed(2)}% on the remaining assessments.`,"var(--info)"); }
+    }
+    document.getElementById('equiv-label').textContent='';
+  } catch(e) { setResult(e.message,"var(--warning)"); }
+}
+
+function calculateDesiredCountry() {
+  try {
+    const sys=state.system, sl=state.schoolLevel;
+    const mode=state._country_dg_mode||'Percentage';
+    const scale=state._country_dg_scale||'';
+    const passing=state._country_dg_passing||60;
+    const curStr=state._dg_current.value.trim();
+    const desStr=state._dg_desired.value.trim();
+    const remStr=(state._dg_remain&&state._dg_remain.value)||'';
+    if(!curStr||!desStr) throw new Error("Enter both current and desired grades.");
+    if(!remStr) throw new Error("Enter remaining assessment weight.");
+    const [cur]=parseCountryEntry(curStr,scale,mode);
+    const [des]=parseCountryEntry(desStr,scale,mode);
+    if(cur===null) throw new Error(`Invalid current grade. ${LETTER_HINTS[scale]||''}`);
+    if(des===null) throw new Error(`Invalid desired grade. ${LETTER_HINTS[scale]||''}`);
+    let rem;
+    if(remStr.endsWith('%')) rem=parseFloat(remStr)/100;
+    else { const rf=parseFraction(remStr); rem=rf<=1.0?rf:rf/100; }
+    if(!rem||rem<=0||rem>1) throw new Error("Remaining weight must be 0.01–1.00 (or 1%–100%).");
+    const scaleMax=mode==="GPA_4"?4.0:mode==="GPA_4_5"?4.5:mode==="GCSE"?9.0:100.0;
+    const needed=(des-cur*(1.0-rem))/rem;
+    const clamped=Math.max(Math.min(needed,scaleMax),0);
+    const gLbl=(needed>=0&&needed<=scaleMax)?countryGradeLabel(clamped,sys,sl):"";
+    if(needed>scaleMax) { setResult(`Not achievable — required (${needed.toFixed(2)}) exceeds max (${scaleMax}).`,"var(--danger)"); }
+    else if(needed<0) { setResult("You have already surpassed your desired grade!","var(--success)"); }
+    else {
+      const gp=gLbl?` [${gLbl}]`:"";
+      let msg;
+      if(mode==="GPA_4"||mode==="GPA_4_5") msg=`You need ${needed.toFixed(3)}${gp} GPA on the remaining assessments.`;
+      else if(mode==="GCSE") msg=`You need band ${needed.toFixed(2)}${gp} on the remaining assessments.`;
+      else msg=`You need ${needed.toFixed(2)}%${gp} on the remaining assessments.`;
+      setResult(msg,"var(--info)");
+    }
+    document.getElementById('equiv-label').textContent='';
+  } catch(e) { setResult(e.message,"var(--warning)"); }
+}
+
+// ─────────────────────────────────────────────
+//  SAVE
+// ─────────────────────────────────────────────
+function handleSave() {
+  if (!state.generated) { alertMsg(t('generate_first')); return; }
+  promptMsg(t('enter_name'), async (fileName) => {
+    if (!fileName) return;
+    const all=await dbLoadAll();
+    const existing=all.find(r=>r.file_name===fileName);
+  if(existing) {
+        confirmMsg(`'${fileName}' ${t('already_exists')}`, ()=>doSave(fileName));
+    } else { doSave(fileName); }
+  });
+}
+
+async function doSave(fileName) {
+  const sys=state.system, typ=state.calcType, sl=state.schoolLevel;
+  let entryVals;
+  if(sys==="Pisay" && typ==="Individual Subject & Quarter GWA") {
+    entryVals=state.subjectsData.map(s=>String(s.gwa));
+  } else {
+    entryVals=state.entries.map(e=>e.value);
+  }
+  const record={
+    file_name:fileName,
+    student_id:document.getElementById('stu-id').value.trim(),
+    student_name:document.getElementById('stu-name').value.trim(),
+    grade_level:document.getElementById('stu-grade').value.trim(),
+    section:document.getElementById('stu-section').value.trim(),
+    quarter:document.getElementById('stu-quarter').value,
+    system:sys,
+    pisay_grade_level:state.gradeLevel,
+    grading:state.gradingSys,
+    type:typ,
+    number:document.getElementById('num-entry').value,
+    core_choice:state.coreChoice,
+    elective_choice:state.electChoice,
+    entries:entryVals,
+    subjects:typ==="Individual Subject & Quarter GWA"?[...state.subjectsData]:[],
+    overall_gwa:0.0,
+    school_level:sl
+  };
+  try {
+    if(isCountrySystem(sys)&&entryVals.length&&typ!=="Desired Grade") {
+      const info=getCountryInfo(sys,sl);
+      if(info){
+        const mode=info.grading_mode,scale=info.scale;
+        const vals=[];
+        for(const v of entryVals){try{const[n]=parseCountryEntry(v,scale,mode);if(n!==null)vals.push(n);}catch{}}
+        if(vals.length) record.overall_gwa=vals.reduce((a,b)=>a+b,0)/vals.length;
+      }
+    } else if(sys==="Pisay"&&typ==="Individual Subject & Quarter GWA"&&state.subjectsData.length) {
+      record.overall_gwa=capVal(state.subjectsData.reduce((a,s)=>a+s.gwa,0)/state.subjectsData.length);
+    } else if(typ!=="Desired Grade") {
+      const [,val]=computeResult(entryVals,sys,state.gradingSys,typ);
+      record.overall_gwa=val;
+    }
+  } catch {}
+  await dbSave(record);
+  alertMsg(`${t('saved_as')} '${fileName}'<br>${t('student')}: ${record.student_name||'—'} (${record.student_id||'—'})`);
+}
+
+// ─────────────────────────────────────────────
+//  HELP WINDOW
+// ─────────────────────────────────────────────
+function showHelpWindow() {
+  const sections = (HELP_TRANSLATIONS[currentLang] && HELP_TRANSLATIONS[currentLang].help_sections)
+    ? HELP_TRANSLATIONS[currentLang].help_sections
+    : HELP_TRANSLATIONS.en.help_sections;
+  const win = document.createElement('div');
+  win.style.cssText = 'display:flex;flex-direction:column;width:560px;max-width:98vw;';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'modal-header';
+  hdr.innerHTML = `<span>Help & Guide</span><button class="btn btn-ghost btn-sm" onclick="closeModal()">X</button>`;
+
+  const body = document.createElement('div');
+  body.style.cssText = 'flex:1;overflow-y:auto;max-height:70vh;';
+
+  for (const [title, text] of sections) {
+    const s = document.createElement('div');
+    s.className = 'help-section';
+    const t = document.createElement('div');
+    t.className = 'help-title';
+    t.textContent = title;
+    const b = document.createElement('div');
+    b.className = 'help-body';
+    b.style.whiteSpace = 'pre-wrap';
+    b.textContent = text;
+    s.append(t, b);
+    body.appendChild(s);
+  }
+
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const closeB = document.createElement('button');
+  closeB.className = 'btn btn-ghost';
+  closeB.textContent = 'Close';
+  closeB.onclick = closeModal;
+  footer.appendChild(closeB);
+
+  win.append(hdr, body, footer);
+  showModal(win);
+}
+
+// ─────────────────────────────────────────────
+// DETAIL WINDOW (Fully Translated)
+// ─────────────────────────────────────────────
+function showDetailWindow(rec) {
+  const win=document.createElement('div');
+  win.style.cssText='display:flex;flex-direction:column;width:560px;max-width:98vw;';
+  const hdr=document.createElement('div');
+  hdr.className='modal-header';
+  hdr.innerHTML=`<span>${rec.file_name}</span><button class="btn btn-ghost btn-sm" onclick="closeModal()">X</button>`;
+  const body=document.createElement('div');
+  body.style.cssText='flex:1;overflow-y:auto;max-height:65vh;padding:0;background:var(--bg-surface);';
+
+  const sys=rec.system||'', grading=rec.grading||'', typ=rec.type||'', sl=rec.school_level||'';
+
+  const fields=[
+    [t('student') + ":", rec.student_name||'—'],
+    [t('student_id') + ":", rec.student_id||'—'],
+    [t('grade_level') + ":", rec.grade_level||'—'],
+    [t('section') + ":", rec.section||'—'],
+    [t('quarter') + ":", rec.quarter||'—'],
+    [t('system') + ":", sys],
+  ];
+  if(sl) fields.push([t('school_level') + ":", sl]);
+  fields.push([t('grading') + ":", grading],[t('type') + ":", typ]);
+
+  for (const [k, v] of fields) {
+    const row = document.createElement('div');
+    row.className = 'detail-row';
+    const dk = document.createElement('div');
+    dk.className = 'detail-key';
+    dk.textContent = k;
+    const dv = document.createElement('div');
+    dv.className = 'detail-val';
+    dv.textContent = v;
+    row.append(dk, dv);
+    body.appendChild(row);
+  }
+
+  // Subjects for Pisay Individual mode
+  if (rec.subjects && rec.subjects.length && typ === "Individual Subject & Quarter GWA") {
+    const shdr = document.createElement('div');
+    shdr.style.cssText = 'background:var(--bg-card2);color:var(--accent2);font-size:13px;font-weight:bold;padding:8px;';
+    shdr.textContent = ui('subject');   // or t('subjects') if you prefer
+    body.appendChild(shdr);
+
+    for (const s of rec.subjects) {
+      const [statusTxt, colorKey] = gwaStatus(s.gwa, sys, "Percentile");
+      const [,, fgC] = statusColors(colorKey);
+
+      const row = document.createElement('div');
+      row.className = 'detail-row';
+
+      const dk = document.createElement('div');
+      dk.className = 'detail-key';
+      dk.textContent = s.name;
+
+      const dv = document.createElement('div');
+      dv.className = 'detail-val';
+      dv.style.color = fgC;
+
+      const gwaEq = convertToGWA(s.gwa);
+      const unitsT = s.units ? ` (${ui('units')}: ${s.units})` : '';
+
+      dv.textContent = `GWA ${gwaEq} (${s.gwa.toFixed(2)}%) ${statusTxt}${unitsT}`;
+      row.append(dk, dv);
+      body.appendChild(row);
+    }
+  } 
+  // Normal entries
+  else if (rec.entries && rec.entries.length) {
+    const ehdr = document.createElement('div');
+    ehdr.style.cssText = 'background:var(--bg-card2);color:var(--accent2);font-size:13px;font-weight:bold;padding:8px;';
+    ehdr.textContent = t('entries');
+    body.appendChild(ehdr);
+
+    for (const [j, val] of rec.entries.entries()) {
+      const row = document.createElement('div');
+      row.className = 'detail-row';
+
+      const dk = document.createElement('div');
+      dk.className = 'detail-key';
+      dk.textContent = `${t('entry')} ${j+1}:`;
+
+      const dv = document.createElement('div');
+      dv.className = 'detail-val';
+      dv.style.color = 'var(--accent2)';
+      dv.textContent = String(val);
+
+      row.append(dk, dv);
+      body.appendChild(row);
+    }
+  }
+
+  // Overall Result
+  const overall = rec.overall_gwa || 0;
+  if (overall && overall > 0) {
+    let statusTxt, colorKey;
+    if (isCountrySystem(sys) && sl) {
+      [statusTxt, colorKey] = countryStatus(overall, sys, sl);
+    } else if (grading === "GWA") {
+      [statusTxt, colorKey] = gwaStatus(overall, sys, "GWA");
+    } else {
+      [statusTxt, colorKey] = gwaStatus(overall, sys, "Percentile");
+    }
+
+    const [resBg, resFg] = statusColors(colorKey);
+    const resBox = document.createElement('div');
+    resBox.style.cssText = `background:${resBg};color:${resFg};padding:12px;text-align:center;font-size:16px;font-weight:bold;margin-top:4px;`;
+    resBox.textContent=`${t('result')}: ${overall.toFixed(4)}  •  ${statusTxt}`;
+    body.appendChild(resBox);
+  }
+
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const closeB = document.createElement('button');
+  closeB.className = 'btn btn-ghost';
+  closeB.textContent = t('close');
+  closeB.onclick = closeModal;
+  footer.appendChild(closeB);
+
+  win.append(hdr, body, footer);
+  showModal(win);
+}
+
+// ─────────────────────────────────────────────
+// SAVED WINDOW (Fully Translated)
+// ─────────────────────────────────────────────
+function showSavedWindow() {
+  const win=document.createElement('div');
+  win.style.cssText='display:flex;flex-direction:column;width:720px;max-width:98vw;';
+  const hdr=document.createElement('div');
+  hdr.className='modal-header';
+  hdr.innerHTML=`<span>${t('saved_files')}</span><button class="btn btn-ghost btn-sm" onclick="closeModal()">X</button>`;
+  const sbar=document.createElement('div');
+  sbar.className='search-bar';
+  const sInp=document.createElement('input');
+  sInp.placeholder=t('search_placeholder');
+  const sBtn=document.createElement('button'); sBtn.className='btn btn-primary'; sBtn.textContent=t('search');
+  const saBtn=document.createElement('button'); saBtn.className='btn btn-ghost'; saBtn.textContent=t('show_all');
+  sBtn.className = 'btn btn-primary'; 
+  sBtn.textContent = t('search');
+  
+  sbar.append(sInp, sBtn, saBtn);
+
+  const listDiv = document.createElement('div');
+  listDiv.style.cssText = 'flex:1;overflow-y:auto;padding:8px;max-height:60vh;background:var(--bg-surface);';
+
+  async function refresh(q) {
+    listDiv.innerHTML = '';
+    const records = q ? await dbSearch(q) : await dbLoadAll();
+
+    if (!records.length) {
+      const d = document.createElement('div');
+      d.style.cssText = 'color:var(--fg-muted);padding:24px;text-align:center;';
+      d.textContent = t('no_files');
+      listDiv.appendChild(d);
+      return;
+    }
+
+    for (const rec of records) {
+      const row = document.createElement('div');
+      row.className = 'saved-row';
+
+      const info = document.createElement('div');
+      info.className = 'saved-row-info';
+
+      const nm = document.createElement('div');
+      nm.className = 'saved-row-name';
+      nm.textContent = rec.file_name;
+
+      let meta = `${rec.system || '?'} · ${tType(rec.type || 'Subject')}`;
+      if (rec.school_level) meta += ` · ${translateSchoolLevel(rec.school_level)}`;
+      if (rec.student_name) meta += ` | ${rec.student_name}`;
+      if (rec.student_id) meta += ` (${t('id')}: ${rec.student_id})`;
+
+      const mt = document.createElement('div');
+      mt.className = 'saved-row-meta';
+      mt.textContent = meta;
+
+      info.append(nm, mt);
+
+      const btns = document.createElement('div');
+      btns.className = 'saved-row-btns';
+
+      const vb = document.createElement('button');
+      vb.className = 'btn btn-primary btn-sm';
+      vb.textContent = t('view');
+      vb.onclick = () => showDetailWindow(rec);
+
+      const sb = document.createElement('button');
+      sb.className = 'btn btn-success btn-sm';
+      sb.textContent = t('load_split');
+      sb.onclick = () => showSplitViewWindow(rec);
+
+      const db = document.createElement('button');
+      db.className = 'btn btn-danger btn-sm';
+      db.textContent = t('delete');
+      db.onclick = () => confirmMsg(`${t('delete_confirm')} '${rec.file_name}'?`, async () => {
+        await dbDelete(rec.file_name);
+        refresh(sInp.value.trim());
+      });
+
+      btns.append(vb, sb, db);
+      row.append(info, btns);
+      listDiv.appendChild(row);
+    }
+  }
+
+  sBtn.onclick = () => refresh(sInp.value.trim());
+  saBtn.onclick = () => { sInp.value = ''; refresh(''); };
+  sInp.addEventListener('keydown', e => { if (e.key === 'Enter') refresh(sInp.value.trim()); });
+
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const cb = document.createElement('button');
+  cb.className = 'btn btn-ghost';
+  cb.textContent = t('close');
+  cb.onclick = closeModal;
+
+  footer.appendChild(cb);
+  win.append(hdr, sbar, listDiv, footer);
+
+  refresh('');
+  showModal(win);
+}
+
+// ─────────────────────────────────────────────
+//  SEARCH WINDOW
+// ─────────────────────────────────────────────
+function showSearchWindow() {
+  const win=document.createElement('div');
+  win.style.cssText='display:flex;flex-direction:column;width:600px;max-width:98vw;';
+  const hdr=document.createElement('div');
+  hdr.className='modal-header';
+  hdr.innerHTML=`<span>${t('search_files')}</span><button class="btn btn-ghost btn-sm" onclick="closeModal()">X</button>`;
+  const sbar=document.createElement('div'); sbar.className='search-bar';
+  const sInp=document.createElement('input'); sInp.placeholder=t('query_placeholder');
+  const sBtn=document.createElement('button'); sBtn.className='btn btn-primary'; sBtn.textContent=t('search');
+  sbar.append(sInp,sBtn);
+  note=document.createElement('div');
+  note.style.cssText='color:var(--fg-muted);font-size:10px;padding:0 8px 8px;background:var(--bg-surface);';
+  note.textContent=t('search_by');
+  const resDiv=document.createElement('div');
+  resDiv.style.cssText='flex:1;overflow-y:auto;padding:8px;max-height:55vh;background:var(--bg-surface);';
+
+  async function doSearch() {
+    resDiv.innerHTML='';
+    const q=sInp.value.trim(); if(!q) return;
+    const records=await dbSearch(q);
+    if(!records.length) { const d=document.createElement('div'); d.style.cssText='color:var(--fg-muted);padding:20px;text-align:center;'; d.textContent=t('no_results'); resDiv.appendChild(d); return; }
+    for(const rec of records) {
+      const c=document.createElement('div'); c.className='saved-row'; c.style.flexDirection='column';
+      const nm=document.createElement('div'); nm.className='saved-row-name'; nm.textContent=rec.file_name;
+      const mt=document.createElement('div'); mt.className='saved-row-meta';
+      mt.textContent=`${t('student')}: ${rec.student_name||''}  |  ${t('id')}: ${rec.student_id||''}  |  ${t('quarter')}: ${rec.quarter||''}  |  ${t('result')}: ${(rec.overall_gwa||0).toFixed(4)}`;
+      const vb=document.createElement('button'); vb.className='btn btn-primary btn-sm'; vb.style.cssText='margin-top:6px;align-self:flex-end;';
+      vb.textContent=t('view') + ' Details'; vb.onclick=()=>showDetailWindow(rec);
+      c.append(nm,mt,vb); resDiv.appendChild(c);
+    }
+  }
+  sBtn.onclick=doSearch;
+  sInp.addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+
+  const footer=document.createElement('div'); footer.className='modal-footer';
+  const closeB=document.createElement('button');
+  closeB.className='btn btn-ghost'; closeB.textContent=t('close'); closeB.onclick=closeModal;
+  footer.appendChild(closeB);
+  win.append(hdr,sbar,note,resDiv,footer);
+  showModal(win);
+}
+
+// ─────────────────────────────────────────────
+//  SPLIT VIEW WINDOW
+// ─────────────────────────────────────────────
+function showSplitViewWindow(savedRecord) {
+  const rec=savedRecord;
+  const sys=rec.system||'Standard', grading=rec.grading||'Percentile';
+  const typ=rec.type||'Subject', sl=rec.school_level||'';
+  const leftEntries=[];
+  let leftDgCurrent=null, leftDgDesired=null, leftDgRemain=null;
+  let leftCountryDgMode='', leftCountryDgScale='', leftCountryDgPassing=60;
+
+  const win=document.createElement('div');
+  win.style.cssText='display:flex;flex-direction:column;width:100%;height:100%;';
+ const hdr=document.createElement('div');
+  hdr.className='modal-header';
+  const tags=[sys,sl,typ,grading].filter(Boolean).join('  ·  ');
+  hdr.innerHTML=`<div><span>${t('split_view')} — ${rec.file_name}</span><span style="color:rgba(255,255,255,.6);font-size:10px;margin-left:12px;">${tags}</span></div><button class="btn btn-ghost btn-sm" onclick="closeModal()">X</button>`;
+  const body=document.createElement('div');
+  body.style.cssText='flex:1;display:flex;flex-direction:column;padding:8px;gap:8px;background:var(--bg-surface);overflow:hidden;';
+
+  const panels=document.createElement('div');
+  panels.style.cssText='display:flex;gap:8px;flex:1;min-height:0;height:560px;';
+
+  // LEFT PANEL
+  const leftPanel=document.createElement('div');
+  leftPanel.style.cssText='flex:1;display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:hidden;';
+  const leftHdr=document.createElement('div');
+  leftHdr.style.cssText='background:var(--accent);color:#fff;font-size:13px;font-weight:bold;padding:8px 12px;flex-shrink:0;';
+  leftHdr.textContent=t('new_calculation');
+  const leftBody=document.createElement('div');
+  leftBody.style.cssText='flex:1;overflow-y:auto;padding:8px;';
+  const leftFooter=document.createElement('div');
+  leftFooter.style.cssText='padding:8px 12px;background:var(--bg-card);border-top:1px solid var(--border);flex-shrink:0;';
+  const leftResultLbl=document.createElement('div');
+  leftResultLbl.style.cssText='color:var(--fg-muted);font-size:14px;font-weight:bold;padding:4px 8px;margin-top:4px;';
+
+  // Build left panel content
+  function buildLeftPanel() {
+    leftBody.innerHTML=''; leftEntries.length=0;
+    // LEFT panel is for NEW calculation - empty inputs
+    const savedEntries = [];
+    const info=isCountrySystem(sys)?getCountryInfo(sys,sl):null;
+    const mode=info?info.grading_mode:'Percentage';
+    const scale=info?info.scale:'';
+    const hint=LETTER_HINTS[scale]||'';
+
+    const banner=document.createElement('div');
+    banner.className='info-banner';
+    banner.textContent=`System: ${sys}  |  Type: ${typ}  |  Grading: ${grading}${sl?' | Level: '+sl:''}${hint?' | '+hint:''}`;
+    leftBody.appendChild(banner);
+
+    const ec={background:'var(--bg-input)',color:'var(--fg-primary)',border:'1px solid var(--border)',borderRadius:'4px',padding:'4px 8px',fontFamily:'inherit',fontSize:'13px',outline:'none',width:'130px'};
+    function mke(def='') {
+      const e=document.createElement('input'); e.type='text';
+      Object.assign(e.style,ec); if(def) e.value=def;
+      return e;
+    }
+
+    if (typ==="Desired Grade") {
+      const nav=[];
+      function mkR(lbl, prefill='') {
+        const div=document.createElement('div');
+        div.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 8px;';
+        const l=document.createElement('span'); l.style.cssText='color:var(--fg-secondary);font-size:13px;min-width:180px;'; l.textContent=lbl;
+        const e=mke(prefill); div.append(l,e); leftBody.appendChild(div); nav.push(e); return e;
+      }
+      if(isCountrySystem(sys)&&sl) {
+        const infoD=getCountryInfo(sys,sl);
+        const modeD=infoD?infoD.grading_mode:'Percentage';
+        const scaleD=infoD?infoD.scale:'';
+        const hintD=LETTER_HINTS[scaleD]||'';
+        leftCountryDgMode=modeD; leftCountryDgScale=scaleD; leftCountryDgPassing=infoD?infoD.passing:60;
+        leftDgCurrent=mkR(`Current Grade (${hintD}):`, '');
+        leftDgDesired=mkR(`Desired Grade (${hintD}):`, '');
+        leftDgRemain=mkR("Remaining Weight (0.01–1.0 or %):", '');
+        const isGwa=(grading==="GWA");
+        const sfx=isGwa?" (GWA 1-5):":" (%):";
+        leftDgCurrent=mkR(`Current Grade${sfx}`, '');
+        leftDgDesired=mkR(`Desired Grade${sfx}`, '');
+        leftDgRemain=mkR("Remaining Weight (0.01–1.0 or %):", '');
+      }
+      bindArrowNav(nav,1); return;
+    }
+
+    if(isCountrySystem(sys)&&sl) {
+      let n=Math.max(parseInt(rec.number||1)||1,1);
+      const lbPfx=typ==="Subject"?"Subject":"Period";
+      const hdrRow=document.createElement('div');
+      hdrRow.style.cssText='display:grid;grid-template-columns:3fr 2fr 1fr;background:var(--bg-card2);padding:6px 8px;font-size:13px;font-weight:bold;color:var(--accent2);';   
+      hdrRow.innerHTML=`<span>${ui('subject')}</span><span style="text-align:center">${isGwa?`${ui('grade')} (1–5)`:`${ui('grade')} (%)`}</span>${isGwa?`<span style="text-align:center">${ui('units')}</span>`:''}`;
+      leftBody.appendChild(hdrRow);
+      const nav=[];
+      for(let i=0;i<n;i++) {
+        const row=document.createElement('div');
+        row.style.cssText=`display:grid;grid-template-columns:3fr 2fr 1fr;padding:5px 8px;align-items:center;background:${i%2===0?'var(--bg-card)':'var(--bg-card2)'};`;
+        const lbl=document.createElement('span'); lbl.style.color='var(--fg-primary)'; lbl.textContent=`${lbPfx} ${i+1}:`;
+        const e=mke('');
+        const conv=document.createElement('span'); conv.style.cssText='text-align:center;font-size:10px;color:var(--fg-muted);'; conv.textContent='—';
+        function makeT(entry,label,sc,mo) {
+          return function(){
+            const raw=entry.value.trim();
+            if(!raw){label.textContent='—';label.style.color='var(--fg-muted)';return;}
+            try{const[num,lu]=parseCountryEntry(raw,sc,mo);if(num!==null){label.textContent=lu?'= '+formatNumericForMode(num,mo):'✓';label.style.color='var(--success)';}else{label.textContent='?';label.style.color='var(--warning)';}}catch{label.textContent='✗';label.style.color='var(--danger)';}
+          };
+        }
+        const t=makeT(e,conv,scale,mode);
+        e.addEventListener('keyup',t); e.addEventListener('blur',t);
+        // trigger conversion display for pre-filled value
+        if(e.value) setTimeout(t,0);
+        row.append(lbl,e,conv); leftBody.appendChild(row);
+        leftEntries.push(e); nav.push(e);
+      }
+      bindArrowNav(nav,1); return;
+    }
+
+    if(sys==="Pisay"&&typ==="Subject") {
+      const gl=rec.pisay_grade_level||'11';
+      const subjects=PISAY_DATA[gl]||[];
+      const core=rec.core_choice||'Biology'; const elect=rec.elective_choice||'Technology';
+      const hdrRow=document.createElement('div');
+      hdrRow.style.cssText='display:grid;grid-template-columns:3fr 2fr 1fr;background:var(--bg-card2);padding:6px 8px;font-size:13px;font-weight:bold;color:var(--accent2);';
+      hdrRow.innerHTML=`<span style="text-align:left">${ui('subject')}</span><span style="text-align:center">GWA (1–5)</span><span style="text-align:center">${ui('units')}</span>`;
+      leftBody.appendChild(hdrRow);
+      const nav=[];
+      for(const [i,s] of subjects.entries()) {
+        let name=s.name;
+        if(name==="Electives") name=`${elect} Elective`;
+        if(name==="Core Science"||name==="Biology") name=`${core} Core`;
+        const row=document.createElement('div');
+        row.style.cssText=`display:grid;grid-template-columns:3fr 2fr 1fr;padding:5px 8px;align-items:center;background:${i%2===0?'var(--bg-card)':'var(--bg-card2)'};`;
+        const lbl=document.createElement('span'); lbl.style.color='var(--fg-primary)'; lbl.textContent=name;
+        // savedEntries for Pisay Subject are stored in pairs: [grade0, units0, grade1, units1, ...]
+        const g=mke('');
+        const u=mke(String(s.units));
+        row.append(lbl,g,u); leftBody.appendChild(row);
+        leftEntries.push(g,u); nav.push(g,u);
+      }
+      bindArrowNav(nav,2); return;
+    }
+
+    if(typ==="Subject") {
+      let n=Math.max(parseInt(rec.number||1)||1,1);
+      const isGwa=grading==="GWA";
+      const cols=isGwa?'3fr 2fr 1fr':'3fr 2fr';
+      const hdrRow=document.createElement('div');
+      hdrRow.style.cssText=`display:grid;grid-template-columns:${cols};background:var(--bg-card2);padding:6px 8px;font-size:13px;font-weight:bold;color:var(--accent2);`;
+      hdrRow.innerHTML = `<span>${ui('subject')}</span><span style="text-align:center">${ui('grade')} (1–5)</span><span style="text-align:center">${ui('units')}</span>`;
+      leftBody.appendChild(hdrRow);
+      const nav=[];
+      for(let i=0;i<n;i++) {
+        const row=document.createElement('div');
+        row.style.cssText=`display:grid;grid-template-columns:${cols};padding:5px 8px;align-items:center;background:${i%2===0?'var(--bg-card)':'var(--bg-card2)'};`;
+        const lbl=document.createElement('span'); lbl.style.color='var(--fg-primary)'; lbl.textContent=`Subject ${i+1}:`;
+        const e=mke('');
+        row.append(lbl,e);
+        if(isGwa){
+          const u=mke(savedEntries[i*2+1]||'1');
+          row.appendChild(u); leftEntries.push(e,u); nav.push(e,u);
+        } else {
+          leftEntries.push(e); nav.push(e);
+        }
+        leftBody.appendChild(row);
+      }
+      bindArrowNav(nav,isGwa?2:1); return;
+    }
+
+    if(typ==="Overall"&&grading==="GWA") {
+      const labels=["Previous Quarter Grade (GWA 1–5):","Weight of Previous Grade (0–1):","Current Quarter Grade (GWA 1–5):","Weight of Current Grade (0–1):"];
+      const nav=[];
+      for(const [j,lb] of labels.entries()) {
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 8px;';
+        const l=document.createElement('span'); l.style.cssText='color:var(--fg-primary);font-size:13px;flex:1;'; l.textContent=lb;
+        const e=mke(''); row.append(l,e); leftBody.appendChild(row);
+        leftEntries.push(e); nav.push(e);
+      }
+      bindArrowNav(nav,1); return;
+    }
+
+    if(typ==="Overall") {
+      let n=Math.max(parseInt(rec.number||4)||4,1);
+      const nav=[];
+      for(let i=0;i<n;i++) {
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 8px;';
+        const l=document.createElement('span'); l.style.cssText='color:var(--fg-primary);font-size:13px;flex:1;'; l.textContent=`Quarter ${i+1} Grade (%):`;
+        const e=mke(''); row.append(l,e); leftBody.appendChild(row);
+        leftEntries.push(e); nav.push(e);
+      }
+      bindArrowNav(nav,1);
+    }
+  }
+
+  // RIGHT PANEL
+  const rightPanel=document.createElement('div');
+  rightPanel.style.cssText='flex:1;display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:hidden;';
+  const rightHdr=document.createElement('div');
+  rightHdr.style.cssText='background:var(--bg-card2);color:var(--accent2);font-size:13px;font-weight:bold;padding:8px 12px;flex-shrink:0;';
+  rightHdr.textContent=t('saved_data');
+  const rightBody=document.createElement('div');
+  rightBody.style.cssText='flex:1;overflow-y:auto;padding:8px;';
+
+  function buildRightPanel() {
+    rightBody.innerHTML='';
+    const metas=[["File",rec.file_name],["Student",rec.student_name||'—'],["ID",rec.student_id||'—'],["Quarter",rec.quarter||'—'],["System",sys]];
+    if(sl) metas.push(["Level",sl]);
+    const metaDiv=document.createElement('div'); metaDiv.style.cssText='background:var(--bg-card2);border-radius:4px;padding:4px 8px;margin-bottom:6px;';
+    for(const [k,v] of metas) {
+      const r=document.createElement('div'); r.style.cssText='display:flex;padding:2px 0;font-size:10px;';
+      const key=document.createElement('span'); key.style.cssText='color:var(--fg-muted);min-width:60px;text-align:right;margin-right:6px;'; key.textContent=k+':';
+      const val=document.createElement('span'); val.style.color='var(--fg-primary)'; val.textContent=v;
+      r.append(key,val); metaDiv.appendChild(r);
+    }
+    rightBody.appendChild(metaDiv);
+
+    // Pre-calculate result
+    let resultStr='—', resultVal=null, colorKey='pass', calcOk=false;
+    try {
+      if(isCountrySystem(sys)&&sl&&typ!=="Desired Grade"&&typ!=="Individual Subject & Quarter GWA") {
+        [resultStr,resultVal]=computeResultCountryFromList(rec.entries||[],sys,sl,typ);
+        [,colorKey]=countryStatus(resultVal,sys,sl); calcOk=true;
+      } else if(sys==="Pisay"&&typ==="Individual Subject & Quarter GWA") {
+        if(rec.subjects&&rec.subjects.length) {
+          const avg=capVal(rec.subjects.reduce((a,s)=>a+s.gwa,0)/rec.subjects.length);
+          resultStr=`Overall GWA: ${avg.toFixed(2)}%`; resultVal=avg;
+          [,colorKey]=gwaStatus(avg,sys,"Percentile"); calcOk=true;
+        }
+      } else if(typ!=="Desired Grade") {
+        [resultStr,resultVal]=computeResult(rec.entries||[],sys,grading,typ);
+        [,colorKey]=gwaStatus(resultVal,sys,grading,sl); calcOk=true;
+      }
+    } catch(ex) { resultStr=`Cannot compute: ${ex.message}`; colorKey='fail'; }
+
+    const [resBg,resFg]=statusColors(colorKey);
+    const resBox=document.createElement('div');
+    resBox.style.cssText=`background:${resBg};color:${resFg};padding:10px;border-radius:4px;font-size:14px;font-weight:bold;margin-bottom:8px;`;
+    if(calcOk&&resultVal!==null) {
+      let display=resultStr;
+      if(isCountrySystem(sys)&&sl) {
+        const gLbl=countryGradeLabel(resultVal,sys,sl);
+        const [st]=countryStatus(resultVal,sys,sl);
+        const gpaEq=countryGpaEquivalent(resultVal,sys,sl);
+        if(gLbl) display+=`  [${gLbl}]`;
+        display+=`  ${st}`;
+        if(gpaEq) display+=`  |  Equiv: ${gpaEq}`;
+      } else {
+        const [st]=gwaStatus(resultVal,sys,grading,sl);
+        display+=`  ${st}`;
+      }
+      resBox.textContent=display;
+    } else { resBox.textContent=resultStr; }
+    rightBody.appendChild(resBox);
+
+    // Entry rows
+    if(rec.subjects&&rec.subjects.length&&typ==="Individual Subject & Quarter GWA") {
+    const shdr=document.createElement('div');
+    shdr.style.cssText='background:var(--bg-card2);color:var(--accent2);font-size:13px;font-weight:bold;padding:8px;';
+    shdr.textContent=t('subjects');
+      rightBody.appendChild(shdr);
+      for(const [j,s] of rec.subjects.entries()) {
+        const [st,ck]=gwaStatus(s.gwa,sys,"Percentile"); const [,,fgC]=statusColors(ck);
+        const row=document.createElement('div'); row.style.cssText=`display:grid;grid-template-columns:3fr 1fr 1fr 2fr;padding:5px 8px;align-items:center;background:${j%2===0?'var(--bg-card)':'var(--bg-card2)'};`;
+        const nm=document.createElement('span'); nm.style.color='var(--fg-primary)'; nm.textContent=s.name;
+        const gw=document.createElement('span'); gw.style.cssText='text-align:center;color:var(--accent2);font-weight:bold;'; gw.textContent=convertToGWA(s.gwa);
+        const pt=document.createElement('span'); pt.style.cssText='text-align:center;color:var(--fg-secondary);font-size:10px;'; pt.textContent=`(${s.gwa.toFixed(2)}%)`;
+        const stS=document.createElement('span'); stS.style.cssText=`text-align:center;color:${fgC};font-size:10px;`; stS.textContent=st;
+        row.append(nm,gw,pt,stS); rightBody.appendChild(row);
+      }
+    } else if(rec.entries&&rec.entries.length) {
+    const ehdr=document.createElement('div');
+    ehdr.style.cssText='background:var(--bg-card2);color:var(--accent2);font-size:13px;font-weight:bold;padding:8px;';
+    ehdr.textContent=t('entries');
+    body.appendChild(ehdr);
+    for(const [j,val] of rec.entries.entries()) {
+      const row=document.createElement('div'); row.className='detail-row';
+      const dk=document.createElement('div'); dk.className='detail-key'; dk.textContent=`${t('entry')} ${j+1}:`;
+    }if(sys==="Pisay"&&typ==="Subject") {
+        const gl=rec.pisay_grade_level||'11';
+        const subjects=PISAY_DATA[gl]||[];
+        const core=rec.core_choice||'Biology';
+        const elect=rec.elective_choice||'Technology';
+        const hdrRow=document.createElement('div');
+        hdrRow.style.cssText='display:grid;grid-template-columns:3fr 1fr 1fr;background:var(--bg-card2);padding:5px 8px;font-size:10px;color:var(--fg-muted);font-weight:bold;';
+        hdrRow.innerHTML='<span>Subject</span><span style="text-align:center">GWA</span><span style="text-align:center">Units</span>';
+        rightBody.appendChild(hdrRow);
+        for(const [i,s] of subjects.entries()) {
+          let name=s.name;
+          if(name==="Electives") name=`${elect} Elective`;
+          // Only show core science for grades 11-12
+          if((name==="Core Science"||name==="Biology") && parseInt(gl)>=11) name=`${core} Core`;
+          const gwaVal=rec.entries[i*2]!==undefined?String(rec.entries[i*2]):'—';
+          const unitsVal=rec.entries[i*2+1]!==undefined?String(rec.entries[i*2+1]):String(s.units);
+          const row=document.createElement('div');
+          row.style.cssText=`display:grid;grid-template-columns:3fr 1fr 1fr;padding:5px 8px;align-items:center;background:${i%2===0?'var(--bg-card)':'var(--bg-card2)'};`;
+          const nm=document.createElement('span'); nm.style.color='var(--fg-primary)'; nm.textContent=name;
+          const gw=document.createElement('span'); gw.style.cssText='text-align:center;color:var(--accent2);font-weight:bold;'; gw.textContent=gwaVal;
+          const un=document.createElement('span'); un.style.cssText='text-align:center;color:var(--fg-secondary);'; un.textContent=unitsVal;
+          row.append(nm,gw,un); rightBody.appendChild(row);
+        }
+      } else {
+        const cInfo2=isCountrySystem(sys)&&sl?getCountryInfo(sys,sl):null;
+        const isC=!!cInfo2; const modeR=cInfo2?cInfo2.grading_mode:null; const scaleR=cInfo2?cInfo2.scale:'';
+        const hdrRow=document.createElement('div');
+        const cols2=isC?'1fr 2fr 2fr 2fr':'1fr 3fr';
+        hdrRow.style.cssText=`display:grid;grid-template-columns:${cols2};background:var(--bg-card2);padding:5px 8px;font-size:10px;color:var(--fg-muted);font-weight:bold;`;
+        hdrRow.innerHTML=`<span>#</span><span style="text-align:center">Saved Value</span>${isC?'<span style="text-align:center">Numeric</span><span style="text-align:center">Grade</span>':''}`;
+        rightBody.appendChild(hdrRow);
+        for(const [j,val] of rec.entries.entries()) {
+          const row=document.createElement('div');
+          row.style.cssText=`display:grid;grid-template-columns:${cols2};padding:5px 8px;align-items:center;background:${j%2===0?'var(--bg-card)':'var(--bg-card2)'};`;
+          const idx=document.createElement('span'); idx.style.cssText='text-align:center;color:var(--fg-muted);font-size:10px;'; idx.textContent=String(j+1);
+          const sv=document.createElement('span'); sv.style.cssText='text-align:center;color:var(--accent2);'; sv.textContent=String(val);
+          row.append(idx,sv);
+          if(isC) {
+            const num=resolveEntryToNumeric(val,scaleR,modeR);
+            const numStr=formatNumericForMode(num,modeR);
+            const numS=document.createElement('span'); numS.style.cssText=`text-align:center;color:${num!==null?'var(--success)':'var(--warning)'};`; numS.textContent=numStr;
+            const gLbl2=num!==null?countryGradeLabel(num,sys,sl):'';
+            const gS=document.createElement('span'); gS.style.cssText='text-align:center;color:var(--fg-secondary);font-size:10px;'; gS.textContent=gLbl2;
+            row.append(numS,gS);
+          }
+          rightBody.appendChild(row);
+        }
+      }
+      }
+  }
+
+  // Left calculate
+  function calcLeft() {
+    try {
+      if(typ==="Desired Grade"&&isCountrySystem(sys)&&sl) {
+        const mode=leftCountryDgMode, scale=leftCountryDgScale, passing=leftCountryDgPassing;
+        if(!leftDgCurrent||!leftDgDesired||!leftDgRemain) throw new Error("Fields not found.");
+        const [cur]=parseCountryEntry(leftDgCurrent.value.trim(),scale,mode);
+        const [des]=parseCountryEntry(leftDgDesired.value.trim(),scale,mode);
+        const remStr=leftDgRemain.value.trim();
+        if(cur===null||des===null) throw new Error("Invalid grade input.");
+        let rem;
+        if(remStr.endsWith('%')) rem=parseFloat(remStr)/100;
+        else{const rf=parseFraction(remStr);rem=rf<=1?rf:rf/100;}
+        if(!rem||rem<=0||rem>1) throw new Error("Remaining weight must be 0.01–1.0.");
+        const scaleMax=mode==="GPA_4"?4:mode==="GPA_4_5"?4.5:mode==="GCSE"?9:100;
+        const needed=(des-cur*(1-rem))/rem;
+        const clamped=Math.max(Math.min(needed,scaleMax),0);
+        const gLbl=needed>=0&&needed<=scaleMax?countryGradeLabel(clamped,sys,sl):'';
+        if(needed>scaleMax){leftResultLbl.textContent=`Not achievable — required (${needed.toFixed(2)}) > max (${scaleMax}).`;leftResultLbl.style.color='var(--danger)';}
+        else if(needed<0){leftResultLbl.textContent="Already surpassed your desired grade!";leftResultLbl.style.color='var(--success)';}
+        else{const gp=gLbl?` [${gLbl}]`:'';const msg=mode==="GPA_4"||mode==="GPA_4_5"?`Need ${needed.toFixed(3)}${gp} GPA.`:mode==="GCSE"?`Need band ${needed.toFixed(2)}${gp}.`:`Need ${needed.toFixed(2)}%${gp}.`;leftResultLbl.textContent=msg;leftResultLbl.style.color='var(--info)';}
+        return;
+      }
+      if(typ==="Desired Grade") {
+        const isGwa=(grading==="GWA");
+        if(!leftDgCurrent||!leftDgDesired||!leftDgRemain) throw new Error("Fields not found.");
+        const cur=toNum(leftDgCurrent.value.trim(),isGwa);
+        const des=toNum(leftDgDesired.value.trim(),isGwa);
+        const rem=toNum(leftDgRemain.value.trim());
+        if(cur===null||des===null||rem===null||rem<=0||rem>1) throw new Error("Invalid inputs.");
+        if(isGwa){const needed=(des-cur*(1-rem))/rem;if(needed<1){leftResultLbl.textContent="Already surpassed desired GWA!";leftResultLbl.style.color='var(--success)';}else if(needed>5){leftResultLbl.textContent="Not achievable — GWA > 5.00.";leftResultLbl.style.color='var(--danger)';}else{leftResultLbl.textContent=`Need GWA ${needed.toFixed(3)} on remaining.`;leftResultLbl.style.color='var(--info)';}}
+        else{const needed=(des-cur*(1-rem))/rem;const np=needed*100;if(np<0){leftResultLbl.textContent="Already surpassed desired grade!";leftResultLbl.style.color='var(--success)';}else if(np>100){leftResultLbl.textContent="Not achievable — score > 100%.";leftResultLbl.style.color='var(--danger)';}else{leftResultLbl.textContent=`Need ${np.toFixed(2)}% on remaining.`;leftResultLbl.style.color='var(--info)';}}
+        return;
+      }
+      if(isCountrySystem(sys)&&sl) {
+        const info=getCountryInfo(sys,sl); if(!info) throw new Error("No info.");
+        const mode=info.grading_mode, scale=info.scale;
+        const values=[];
+        for(const e of leftEntries){const raw=e.value.trim();if(!raw)continue;const[n]=parseCountryEntry(raw,scale,mode);if(n===null)throw new Error(`Invalid value '${e.value}'.`);values.push(n);}
+        if(!values.length) throw new Error("No grades entered.");
+        const avg=values.reduce((a,b)=>a+b,0)/values.length;
+        const [st,ck]=countryStatus(avg,sys,sl); const[,,fgC]=statusColors(ck);
+        const gLbl=countryGradeLabel(avg,sys,sl); const gpaEq=countryGpaEquivalent(avg,sys,sl);
+        let display=mode==="GPA_4"||mode==="GPA_4_5"?`Average: ${avg.toFixed(3)}`:mode==="GCSE"?`Average: ${avg.toFixed(2)}`:`Average: ${avg.toFixed(2)}%`;
+        if(gLbl) display+=`  [${gLbl}]`; display+=`  ${st}`;
+        if(gpaEq) display+=`  |  Equiv: ${gpaEq}`;
+        leftResultLbl.textContent=display; leftResultLbl.style.color=fgC; return;
+      }
+      const entryVals=leftEntries.map(e=>e.value);
+      const[rs,rv]=computeResult(entryVals,sys,grading,typ);
+      const[st,ck]=gwaStatus(rv,sys,grading,sl); const[,,fgC]=statusColors(ck);
+      let extra='';
+      if(grading==="Percentile"&&!isCountrySystem(sys)) extra=`  |  GWA Equiv: ${convertToGWA(rv)}`;
+      leftResultLbl.textContent=`${rs}  ${st}${extra}`; leftResultLbl.style.color=fgC;
+    } catch(e) { leftResultLbl.textContent=`${e.message}`; leftResultLbl.style.color='var(--warning)'; }
+  }
+
+  // Left save
+  function saveLeft() {
+    promptMsg("Enter a name for this calculation:", async (name)=>{
+      let entryVals;
+      if(typ==="Desired Grade") {
+        entryVals=[(leftDgCurrent&&leftDgCurrent.value)||'',(leftDgDesired&&leftDgDesired.value)||'',(leftDgRemain&&leftDgRemain.value)||''];
+      } else {
+        entryVals=leftEntries.map(e=>e.value);
+      }
+      const newRecord={
+        file_name:name,student_id:rec.student_id||'',student_name:rec.student_name||'',
+        grade_level:rec.grade_level||'',section:rec.section||'',quarter:rec.quarter||'Q1',
+        system:sys,pisay_grade_level:rec.pisay_grade_level||'11',grading:grading,type:typ,number:rec.number||'1',
+        core_choice:rec.core_choice||'Biology',elective_choice:rec.elective_choice||'Technology',
+        entries:entryVals,subjects:[],overall_gwa:0.0,school_level:sl
+      };
+      try {
+        if(isCountrySystem(sys)&&sl&&typ!=="Desired Grade") {
+          const info=getCountryInfo(sys,sl);
+          if(info){const mode=info.grading_mode,scale=info.scale;const vals=[];for(const v of entryVals){try{const[n]=parseCountryEntry(v,scale,mode);if(n!==null)vals.push(n);}catch{}}if(vals.length)newRecord.overall_gwa=vals.reduce((a,b)=>a+b,0)/vals.length;}
+        } else if(typ!=="Desired Grade") {
+          const[,val]=computeResult(leftEntries,sys,grading,typ);
+          newRecord.overall_gwa=val;
+        }
+      } catch {}
+      await dbSave(newRecord);
+      alertMsg(`Saved as '${name}'`);
+    });
+  }
+
+  const calcBtn=document.createElement('button'); calcBtn.className='btn btn-primary'; calcBtn.style.cssText='padding:8px 16px;'; calcBtn.textContent=t('calculate_new'); calcBtn.onclick=calcLeft;
+  const saveBtn=document.createElement('button'); saveBtn.className='btn btn-success'; saveBtn.style.cssText='padding:8px 16px;'; saveBtn.textContent=t('save_this'); saveBtn.onclick=saveLeft;
+  leftFooter.style.cssText='padding:8px 12px;background:var(--bg-card);border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px;flex-direction:column;';
+  const btnRow=document.createElement('div'); btnRow.style.cssText='display:flex;gap:8px;'; btnRow.append(calcBtn,saveBtn);
+  leftFooter.append(btnRow,leftResultLbl);
+
+  leftPanel.append(leftHdr,leftBody,leftFooter);
+  rightPanel.append(rightHdr,rightBody);
+  panels.append(leftPanel,rightPanel);
+  body.appendChild(panels);
+
+  buildLeftPanel();
+  buildRightPanel();
+
+  win.append(hdr,body);
+  showModal(win,'split-modal');
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+function init() {
+  initSystemSelect();
+  setTypeOptions(["Subject","Overall","Desired Grade"]);
+  refreshRightPanel();
+  updateNumLabel();
+  updateUILanguage(); 
+}
+
+init();
+</script>
+</body>
+</html>
